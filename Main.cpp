@@ -1377,8 +1377,16 @@ void cargarCircuito()
 		TramoCurvo(2, 10, -270, 10, 1).draw(); ejes();
 		Tramo(2, 6, 6, 1).draw(); ejes();
 		TramoCurvo(2, 4.5, 180, 10, 1).draw(); ejes();
-		Tramo(2, 7.1, 6, 1).draw(); ejes();
+		
+		Rampa(2, 7.1, 6, 1,+0.5).draw(); ejes();
+		RampaCurva(2, 4.5, 180, 10, 1,0.5).draw(); ejes();
+		Rampa(2, 7.1, 6, 1, 0.5).draw(); ejes();
+		Tramo(2, 4, 10, 1).draw(); ejes();
 
+		Looping(2,4,3,20,1).draw(); ejes();
+
+		Tramo(2, 4, 10, 1).draw(); ejes();
+		
 		glColor3f(0, 1, 1);
 
 		glColor3f(1, 0, 0);
