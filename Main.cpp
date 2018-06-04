@@ -27,7 +27,16 @@ GLint nivel = 1;
 
 GLfloat aumentovelocidadgiro = 10;// lo uso para probar ya que la velocidad de giro que se da en el problema es ridiculamente baja
 			
-								  
+//Lista de los identificadores de los tramos.
+GLint const totalTramos = 7;
+GLint tramos_disponibles[totalTramos];
+
+//Atributos para el funcionamiento del Hud
+GLboolean seleccionado = false;
+GLint tramoactual = 0;
+//control de la rotacion de las piezas;
+GLfloat rotacion_pieza = 0;
+
 //Identificadores listas poligonos
 GLint circuito1;
 GLint circuito2;
@@ -85,6 +94,7 @@ BOOLEAN rightclick=false;
 
 BOOLEAN test = true; //Variable para el control del testeo de niveles.
 BOOLEAN menu = true;
+BOOLEAN creacion = true; //Variable para controlar el estado de creacion
 BOOLEAN alambricoSimple = false;
 BOOLEAN diurnoNocturno =false;
 BOOLEAN niebla = false;
@@ -698,6 +708,15 @@ void minimapanivel1() {
 	}
 }
 
+void rellenarListaDeTramosDisponibles() {
+	
+	for (int i = 0; i < totalTramos; i++) {
+
+		tramos_disponibles[i] = i + 1;
+	}
+	
+
+}
 
 void init()
 // Funcion propia de inicializacion
@@ -1079,6 +1098,33 @@ void hudJuego() {
 
 }
 
+void dibuja_tramo(GLint identificador) {
+	switch (identificador) {
+	case 1:
+		Tramo();
+
+		break;
+	case 2:
+		TramoCurvo();
+		break;
+	case 3:
+		Rampa();
+		break;
+	case 4:
+		RampaCurva();
+		break;
+	case 5:
+		TramoSinuosoHorizontal();
+		break;
+	case 6:
+		TramoSinuosoVertical();
+		break;
+	case 7:
+		Looping();
+		break;
+	}
+}
+
 void hudElementBaseSelectorPiezas() {
 	// Habilitamos blending
 	glEnable(GL_BLEND);
@@ -1141,7 +1187,13 @@ void hudElementBaseSelectorPiezas() {
 	//central
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//rgb(50,205,50)
-	glColor4f(1, 1, 1, 0.5);
+	if (seleccionado) {
+		glColor4f(1, 1, 0, 0.8);
+	}
+	else {
+		glColor4f(1, 1, 1, 0.8);
+	}
+	
 	glBegin(GL_QUAD_STRIP);
 	glTexCoord2f(0, 0);
 	glVertex3f(-0.1, 0.925, 0.9);
@@ -1193,6 +1245,37 @@ void hudElementBaseSelectorPiezas() {
 
 }
 
+
+//TODO continuar con el selector de piezas, ver como hacer las animaciones mas automatizables y la colocacion de las piezas mas automatizables.
+void hudElementPiezasVisibles() {
+	// Habilitamos blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// Z-Buffer
+	glDepthMask(GL_FALSE);
+	
+	glPushMatrix();
+
+	
+	//derecho
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	glTranslatef(0.6, 0.825-0.075, 0.8);
+	//rotacion a aplicar.
+	glRotatef(90, 1, 0, 0);
+	glRotatef(90, 0, 1, 0);
+	glRotatef(rotacion_pieza, 1, 0, 0);
+
+	Tramo(0.05,0.15,2,1).draw();
+
+	glPopAttrib();
+	glPopMatrix();
+	// Z-Buffer a estado normal
+	glDepthMask(GL_TRUE);
+
+}
+
+
 void hudModoCreacion() {
 	
 	
@@ -1210,6 +1293,7 @@ void hudModoCreacion() {
 		
 		//Nos disponemos a añadir los elementos al hud, de esta forma, podremos tener elementos añadidos de forma constante delante de la camara y crear una interfaz para el usuario.
 		hudElementBaseSelectorPiezas();
+		hudElementPiezasVisibles();
 
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -1372,26 +1456,23 @@ void cargarCircuito()
 		TramoCurvo(2, 5, -90, 5, 1).draw(); ejes();
 
 		Tramo(2, 4, 10, 1).draw(); ejes();
-		TramoCurvo(2, 5, -90, 5, 1).draw(); ejes();
-		Tramo(2, 8.17, 10, 1).draw(); ejes();
-		TramoCurvo(2, 10, -270, 10, 1).draw(); ejes();
-		Tramo(2, 6, 6, 1).draw(); ejes();
-		TramoCurvo(2, 4.5, 180, 10, 1).draw(); ejes();
-		
-		Rampa(2, 7.1, 6, 1,+0.5).draw(); ejes();
-		RampaCurva(2, 4.5, 180, 10, 1,0.5).draw(); ejes();
-		Rampa(2, 7.1, 6, 1, 0.5).draw(); ejes();
-		Tramo(2, 4, 10, 1).draw(); ejes();
 
 		Looping(2,4,3,20,1).draw(); ejes();
 
 		Tramo(2, 4, 10, 1).draw(); ejes();
 		
+		//piezas a testear
 		glColor3f(0, 1, 1);
-
+		TramoSinuosoHorizontal(2, 4, 9,2,true, 10, 1).draw(); ejes();
+		
 		glColor3f(1, 0, 0);
+		Tramo(2, 4, 10, 1).draw(); ejes();
 
 		glColor3f(0, 0.2, 0);
+		TramoSinuosoVertical(2, 4, 2,2, false, 10, 1).draw(); ejes();
+
+		glColor3f(1, 0.2, 0);
+		Tramo(2, 4, 10, 1).draw(); ejes();
 	}
 	glPopMatrix();
 }
@@ -1491,6 +1572,7 @@ void display()
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glEnable(GL_TEXTURE_2D);
 		}
+
 
 		if (camaraLibre) {//camara aerea para ver el circuito desde arriba
 			GLfloat posicionvoladora[] = { 0.0f, -17.3f, 0.0f, 1.0f };
@@ -1612,16 +1694,39 @@ void reshape(GLint w, GLint h)
 	gluPerspective(120, razon, 0.1, 400);
 }
 
+void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
+	switch (specialKey) {
+	case GLUT_KEY_LEFT:
+		tramoactual = tramoactual - 1;
 
+		break;
+	case GLUT_KEY_RIGHT:
+		tramoactual = tramoactual + 1;
+		break;
+	case GLUT_KEY_UP:
+
+		break;
+	case GLUT_KEY_DOWN:
+
+		break;
+	}
+
+}
 
 
 void onSpecialKey(int specialKey, int x, int y) {
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
-		direccionVelocidad = direccionVelocidad + 0.25;
+		if (creacion) {
+
+		}
+		else {
+			direccionVelocidad = direccionVelocidad + 0.25;
+		}
 
 		break;
 	case GLUT_KEY_RIGHT:
+	
 		direccionVelocidad = direccionVelocidad - 0.25;
 
 		break;
@@ -1723,70 +1828,68 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 
-
-
-void onKey(unsigned char tecla, int x, int y)
+void onKeyOld(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
 	//float xrotrad, yrotrad;
 	switch (tecla) {
-	
-	//la division /2 en xpos,zpos,ypos es simplemente para graduar el desplazamiento de la camara.
+
+		//la division /2 en xpos,zpos,ypos es simplemente para graduar el desplazamiento de la camara.
 	case 'W':
 	case 'w':
-			/* Antiguo metodo ahora en desuso
+		/* Antiguo metodo ahora en desuso
 
-			yrotrad =  (yrot / 180 * 3.141592654f);
-			xrotrad = (xrot / 180 * 3.141592654f);
-			cout << "\n xpos " << xpos << " ypos " << ypos << " zpos " << zpos  << " yrotad " << yrot << " xrotrad " << xrot;
-			xpos += float(sin(yrotrad))/ reduccionVelocidadCamara;
-			zpos -= float(cos(yrotrad))/ reduccionVelocidadCamara;
-			
-			ypos -= float(sin(xrotrad))/ reduccionVelocidadCamara;
-		
-			*/
-			camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
-			break;
+		yrotrad =  (yrot / 180 * 3.141592654f);
+		xrotrad = (xrot / 180 * 3.141592654f);
+		cout << "\n xpos " << xpos << " ypos " << ypos << " zpos " << zpos  << " yrotad " << yrot << " xrotrad " << xrot;
+		xpos += float(sin(yrotrad))/ reduccionVelocidadCamara;
+		zpos -= float(cos(yrotrad))/ reduccionVelocidadCamara;
+
+		ypos -= float(sin(xrotrad))/ reduccionVelocidadCamara;
+
+		*/
+		camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
+		break;
 
 	case 'S':
 	case 's':
-			/*
-			yrotrad = (yrot / 180 * 3.141592654f);
-			xrotrad = (xrot / 180 * 3.141592654f);
-			xpos -= float(sin(yrotrad))/ reduccionVelocidadCamara;
-			zpos += float(cos(yrotrad))/ reduccionVelocidadCamara;
-			ypos += float(sin(xrotrad))/ reduccionVelocidadCamara;
-			*/
-			camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
-			break;
+		/*
+		yrotrad = (yrot / 180 * 3.141592654f);
+		xrotrad = (xrot / 180 * 3.141592654f);
+		xpos -= float(sin(yrotrad))/ reduccionVelocidadCamara;
+		zpos += float(cos(yrotrad))/ reduccionVelocidadCamara;
+		ypos += float(sin(xrotrad))/ reduccionVelocidadCamara;
+		*/
+		camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
+		break;
 
 	case 'D':
 	case 'd':
-		
-			/*
-			yrotrad = (yrot / 180 * 3.141592654f);
-			xpos += float(cos(yrotrad)) * 0.2;
-			zpos += float(sin(yrotrad)) * 0.2;
-			*/
-			camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
-			break;
+
+		/*
+		yrotrad = (yrot / 180 * 3.141592654f);
+		xpos += float(cos(yrotrad)) * 0.2;
+		zpos += float(sin(yrotrad)) * 0.2;
+		*/
+		camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
+		break;
 	case 'A':
 	case 'a':
-			/*
-			yrotrad = (yrot / 180 * 3.141592654f);
-			xpos -= float(cos(yrotrad)) * 0.2;
-			zpos -= float(sin(yrotrad)) * 0.2;
-			*/
-			camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
-			break;
-	
+		/*
+		yrotrad = (yrot / 180 * 3.141592654f);
+		xpos -= float(cos(yrotrad)) * 0.2;
+		zpos -= float(sin(yrotrad)) * 0.2;
+		*/
+		camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
+		break;
+
 		/*
 		case 's':
-	case 'S':
+		case 'S':
 		alambricoSimple = !alambricoSimple;
 
 		break;
-	*/
+		*/
 
 	case 'l':
 	case 'L':
@@ -1804,6 +1907,8 @@ void onKey(unsigned char tecla, int x, int y)
 		camaraLibre = !camaraLibre;
 		break;
 	case ' '://Freno de mano
+			 //TODO añadir el fijado de camara sobre la pieza actual
+
 		moduloVelocidad = moduloVelocidad - 1.0;
 		if (moduloVelocidad < 0) {
 			moduloVelocidad = 0;
@@ -1813,10 +1918,10 @@ void onKey(unsigned char tecla, int x, int y)
 	case 'c':
 	case 'C':
 		hud = !hud;
-			break;
+		break;
 	case 'p':
 	case 'P':
-		saveScreenshot("foto.jpg",ancho,alto);
+		saveScreenshot("foto.jpg", ancho, alto);
 		break;
 	case '1':
 		nivel = 1;
@@ -1826,6 +1931,71 @@ void onKey(unsigned char tecla, int x, int y)
 		nivel = 2;
 		reinicio();
 		break;
+	case 13:
+
+		if (creacion) {
+			if (seleccionado)
+			{
+				//si ya se habia seleccionado una pieza la dibujamos
+			}
+			else
+			{
+				// si no, simplemente marcamos la pieza como seleccionada
+			}
+			seleccionado = !seleccionado;
+		}
+		break;
+	case 27: // Pulso escape
+			 //TODO AÑADIR MENU
+		exit(0);
+	}
+	stringstream titulo;
+	titulo << "Circuito final: " << moduloVelocidad << " m/s";
+	glutSetWindowTitle(titulo.str().c_str()); // Pone el titulo
+
+}
+
+
+
+void onKeyCreacion(unsigned char tecla, int x, int y)
+// Funcion de atencion al teclado
+{
+	//float xrotrad, yrotrad;
+	switch (tecla) {
+	
+	//la division /2 en xpos,zpos,ypos es simplemente para graduar el desplazamiento de la camara.
+	case 'W':
+	case 'w':
+			camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
+			break;
+
+	case 'S':
+	case 's':
+			camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
+			break;
+
+	case 'D':
+	case 'd':
+			camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
+			break;
+	case 'A':
+	case 'a':
+			camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
+			break;
+	case 13:
+		
+		
+			if (seleccionado)
+			{
+				//si ya se habia seleccionado una pieza la dibujamos
+				dibuja_tramo(tramoactual);
+			}
+			else
+			{
+				// si no, simplemente marcamos la pieza como seleccionada
+			}
+			seleccionado = !seleccionado;
+		break;
 	case 27: // Pulso escape
 		//TODO AÑADIR MENU
 		exit(0);
@@ -1833,8 +2003,7 @@ void onKey(unsigned char tecla, int x, int y)
 	stringstream titulo;
 	titulo << "Circuito final: " << moduloVelocidad << " m/s";
 	glutSetWindowTitle(titulo.str().c_str()); // Pone el titulo
-
-											  //glutPostRedisplay(); SOBRA	
+							
 }
 
 void onIdle()
@@ -1859,14 +2028,17 @@ void onIdle()
 		}
 
 	}
+
+
 	
+
 	static int antesc = 0;
 	int ahorac, tiempo_transcurridoc;
 
 	ahorac = glutGet(GLUT_ELAPSED_TIME); //Tiempo transcurrido desde el inicio
 	tiempo_transcurridoc = ahorac - antesc; //Tiempo transcurrido desde antes en msg.
 										
-
+	rotacion_pieza += float((0.018f*float(tiempo_transcurridoc)));
 
 	desplazamientoz += moduloVelocidad * cos(direccionVelocidad*aumentovelocidadgiro*3.1415926 / 180)*tiempo_transcurridoc / 1000;
 	desplazamientox += moduloVelocidad * sin(direccionVelocidad*aumentovelocidadgiro*3.1415926 / 180)*tiempo_transcurridoc / 1000;
@@ -1901,7 +2073,7 @@ void main(int argc, char** argv)
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
 	//glutPassiveMotionFunc(mouseMovement); //Funcion de atencion al raton pasiva siempre a la escucha
-	glutKeyboardFunc(onKey); // Alta de la funcion de atencion al teclado
+	glutKeyboardFunc(onKeyCreacion); // Alta de la funcion de atencion al teclado
 	glutSpecialFunc(onSpecialKey);// Alta de la funcion de atencion al teclado especial
 	glutIdleFunc(onIdle); // Alta de la funcion de atencion a idle
 	init(); // Inicializacion propia

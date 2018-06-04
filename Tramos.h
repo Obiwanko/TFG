@@ -271,6 +271,158 @@ public:
 
 
 
+class TramoSinuosoHorizontal : public Tramo
+{
+protected:
+	float _ondulacion;				
+	float _orientacion;
+	float _potencia;
+	int id = 5;
+public:
+	//valores por defecto
+
+	TramoSinuosoHorizontal() : _ondulacion(), _orientacion(){};
+
+	//Codiciones para que un tramo sea valido
+	TramoSinuosoHorizontal(float ancho, float longitud, float ondulacion, float potencia = 1, bool orientacion = true, int res = 10, int repitetex = 1 )
+	{
+		_ancho = max(0, ancho);
+		_longitud = max(0, longitud);
+		//minimo cinco quads para que se pueda mostrar la sinuosidad
+		_res = min(max(5, res), 100);
+		_texX = max(1, repitetex);
+		//la ondulacion vendrá marcada un maximo de 1 ondulacion completa cada 4 metros
+		_ondulacion = min(ondulacion, longitud/2);
+		_orientacion = orientacion;
+		//la potencia por  la que se multiplique la ondulacion no puede ser mayor de 1 cada 4 metros
+		_potencia = min(potencia, longitud / 4);
+
+	};
+
+	void draw() const
+	{
+		// Se construye un quadtex con la resolucion pedida para que los 
+		// miniquads salgan cuadrados. La textura se repite a lo largo del 
+		// quad, no a lo ancho
+		// El tramo se dibuja en el s.r. del modelo hacia x+
+		// Al final mueve el s.r. al final del tramo
+
+		//cada punto de ondulacion es media vuelta es decir giro a izquierda y giro a derecha 
+		float ondulacion_quad = rad(abs(_ondulacion*180)) / _res;
+		int ondulacion_inicial_quad = (_orientacion ? 90 : 270);
+		
+
+		Point3D v0(0, 0, -_ancho / 2);
+		Point3D v1(0, 0, _ancho / 2);
+		Point3D v3;
+		Point3D v2;
+
+		for (int i = 0; i < _res; i++) {
+
+			float inc = (float)(i + 1) / (float)_res;
+
+
+			v3.x = inc * _longitud;
+			v3.y = 0;
+			v3.z = (-_ancho / 2) + _potencia *cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
+
+			//cout << float(i * 2 * PI) / _res << " " ;
+
+			v2.x = inc * _longitud;
+			v2.y = 0;
+			v2.z = (_ancho / 2) + _potencia *cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
+
+			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+
+				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
+			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
+		}
+
+		glTranslatef(_longitud, 0, 0);
+
+	};
+};
+
+
+
+class TramoSinuosoVertical : public Tramo
+{
+protected:
+	float _ondulacion;
+	float _orientacion;
+	float _potencia;
+	int id = 6;
+public:
+	//valores por defecto
+
+	TramoSinuosoVertical() : _ondulacion(), _orientacion() {};
+
+	//Codiciones para que un tramo sea valido
+	TramoSinuosoVertical(float ancho, float longitud, float ondulacion,float potencia = 1, bool orientacion = true, int res = 10, int repitetex = 1)
+	{
+		_ancho = max(0, ancho);
+		_longitud = max(0, longitud);
+		//minimo cinco quads para que se pueda mostrar la sinuosidad
+		_res = min(max(5, res), 100);
+		_texX = max(1, repitetex);
+		//la ondulacion vendrá marcada un maximo de 1 ondulacion completa cada 4 metros
+		_ondulacion = min(ondulacion, longitud / 2);
+		_orientacion = orientacion;
+		//la potencia por  la que se multiplique la ondulacion no puede ser mayor de 1 cada 4 metros
+		_potencia = min(potencia, longitud/4);
+
+	};
+
+	void draw() const
+	{
+		// Se construye un quadtex con la resolucion pedida para que los 
+		// miniquads salgan cuadrados. La textura se repite a lo largo del 
+		// quad, no a lo ancho
+		// El tramo se dibuja en el s.r. del modelo hacia x+
+		// Al final mueve el s.r. al final del tramo
+
+		//cada punto de ondulacion es media vuelta es decir giro a izquierda y giro a derecha 
+		float ondulacion_quad = rad(abs(_ondulacion * 180)) / _res;
+		int ondulacion_inicial_quad = (_orientacion ? 90 : 270);
+
+
+		Point3D v0(0, 0, -_ancho / 2);
+		Point3D v1(0, 0, _ancho / 2);
+		Point3D v3;
+		Point3D v2;
+
+		for (int i = 0; i < _res; i++) {
+
+			float inc = (float)(i + 1) / (float)_res;
+
+
+			v3.x = inc * _longitud;
+			v3.y = _potencia*cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
+			v3.z = (-_ancho / 2);
+
+			//cout << float(i * 2 * PI) / _res << " " ;
+
+			v2.x = inc * _longitud;
+			v2.y = _potencia*cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
+			v2.z = (_ancho / 2);
+
+			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+
+				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
+			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
+		}
+
+		glTranslatef(_longitud, 0, 0);
+
+	};
+};
+
 
 
 class Looping : public Tramo
@@ -278,7 +430,7 @@ class Looping : public Tramo
 protected:
 	float _radio;
 	float _separacion;
-	int id = 5;
+	int id = 7;
 public:
 
 	Looping() : _radio(),_separacion() {};
@@ -305,7 +457,7 @@ public:
 		Point3D v1(0, 0, _ancho / 2);
 		Point3D v3;
 		Point3D v2;
-		// en este caso necesitamos el <= para que de la vuelta completa
+		
 		for (int i = 0; i < _res; i++) {
 
 			float inc = (float)(i + 1) / (float)_res;
