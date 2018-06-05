@@ -134,11 +134,10 @@ public:
 			v2.z = (radio + _ancho/2) * cos( (i+1)*angulo_quad );
 
 			// Al hacer reflexion con glScale(1,1,-1) el quad hay que darlo en horario para que quede en antihorario
-			if( _angulo > 0 )
+			
 				quadtex( (GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 				          0, 1, i*float(_texX)/_res, (i+1)*float(_texX)/_res, _res, 1 );
-			else quadtex( (GLfloat*)v1, (GLfloat*)v0, (GLfloat*)v3, (GLfloat*)v2,
-						  0, 1, i*float(_texX)/_res, (i+1)*float(_texX)/_res, _res, 1 );
+
 
 			v0.x = v3.x; v0.z = v3.z;
 			v1.x = v2.x; v1.z = v2.z;
@@ -197,20 +196,22 @@ public:
 };
 
 
-class RampaCurva : public Rampa
+class RampaCurva : public TramoCurvo
 {
 protected:
 	float _angulo;
+	float _pendiente;
 	int id = 4;
 public:
 
 	RampaCurva() : _angulo() {};
 
 	//Codiciones para que este tramo sea valido
-	RampaCurva(float ancho, float longitud, float grados, int res = 1, int repitetex = 1, float pendiente = 1) : _angulo(grados), Rampa(ancho, longitud, res, repitetex)
+	RampaCurva(float ancho, float longitud, float grados, int res = 10, int repitetex = 1, float pendiente = 0.5) : _angulo(grados), TramoCurvo(ancho, longitud, grados, res, repitetex)
 	{
 		// El radio debe ser mayor que la mitad del ancho
-		if (longitud < ancho*rad(abs(grados)) / 2) _longitud = ancho * rad(abs(grados)) / 2;
+		//if (longitud < ancho*rad(abs(grados)) / 2) _longitud = ancho * rad(abs(grados)) / 2;
+		_pendiente = min(pendiente, 1.5);
 	};
 
 	void draw()
@@ -248,13 +249,11 @@ public:
 			v2.z = (radio + _ancho / 2) * cos((i + 1)*angulo_quad);
 
 			// Al hacer reflexion con glScale(1,1,-1) el quad hay que darlo en horario para que quede en antihorario
-			if (_angulo > 0)
+		
 				quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 					
 					0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
-			else quadtex((GLfloat*)v1, (GLfloat*)v0, (GLfloat*)v3, (GLfloat*)v2,
-				
-				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+	
 
 			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
 			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
@@ -438,8 +437,9 @@ public:
 	//Codiciones para que este tramo sea valido
 	Looping(float ancho,float separacion, float radio, int res = 1, int repitetex = 1) : _separacion(separacion), _radio(), Tramo(ancho,1, res, repitetex)
 	{
-		// El radio debe ser al menos 4
-		if (radio < 4) _radio = 4;
+		// El radio debe ser igual que el ancho
+		if (radio < ancho) _radio = ancho;
+		else _radio = radio;
 	};
 
 	void draw()

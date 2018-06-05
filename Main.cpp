@@ -729,6 +729,31 @@ void init()
 		//inicializamos la camara con los valores por defecto.
 		camaraflotante = Camera();
 
+
+		iluminacion();
+
+		//Texturas
+		init_de_Textura(textura_carretera, "./textures/carretera.jpg");
+		init_de_Textura(textura_fondo, "./textures/fondo.jpg");
+		init_de_Textura(textura_nukacola, "./textures/nukacola.jpg");
+		init_de_Textura(textura_metal, "./textures/metal.jpg");
+		init_de_Textura(textura_slurm, "./textures/slurm.jpg");
+		init_de_Textura(textura_sonic, "./textures/sonic.jpg");
+		init_de_Textura(textura_hierba, "./textures/hierba.jpg");
+		init_de_Textura(textura_panel_trasero, "./textures/paneltrasero.jpg");
+		init_de_Textura(textura_cielonoche, "./textures/cielonoche.jpg");
+		init_de_Textura(textura_cielodia, "./textures/cielodia.jpg");
+		init_de_Textura(textura_victoria, "./textures/victory.PNG");
+		init_de_Textura(textura_velocimetro, "./textures/velocimetro.PNG");
+		init_de_Textura(textura_aguja, "./textures/aguja.jpg");
+		init_de_Textura(textura_bandera1, "./textures/bandera1.PNG");
+		init_de_Textura(textura_bandera2, "./textures/bandera2.PNG");
+		init_de_Textura(textura_bandera3, "./textures/bandera3.PNG");
+		init_de_Textura(textura_goal, "./textures/goal.PNG");
+		init_de_Textura(textura_start, "./textures/start.PNG");
+		init_de_Textura(textura_coche, "./textures/coche.PNG");
+
+
 	}
 	else {
 
@@ -1098,6 +1123,57 @@ void hudJuego() {
 
 }
 
+void dibuja_tramo_HUD(GLint identificador) {
+	// sumamos +1 ya que los arrays empiezan por 0
+	switch (identificador+1) {
+	case 1:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		Tramo(0.05, 0.15, 2, 1).draw();
+		break;
+	case 2:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		TramoCurvo(0.05,0.15,90,10,1).draw();
+		break;
+	case 3:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		Rampa(0.05, 0.10,0.5, 1, 1).draw();
+		break;
+	case 4:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		RampaCurva(0.05, 0.08, 90,10, 2, 1).draw();
+		break;
+	case 5:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		glScalef(0.01, 0.01, 0.01);
+		TramoSinuosoHorizontal(5,15,2,2,true,20,1).draw();
+		break;
+	case 6:
+		glRotatef(90, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 1, 0, 0);
+		glScalef(0.01, 0.01, 0.01);
+		TramoSinuosoVertical(5, 15, 2, 2, true, 20, 1).draw();
+		break;
+	case 7:
+		//glRotatef(-180, 1, 0, 0);
+		glRotatef(90, 0, 1, 0);
+		glRotatef(rotacion_pieza, 0, 1, 0);
+		Looping(0.05,0.06,0.08,20,1).draw();
+		break;
+	//TODO añadir nuevas piezas conforme las vaya haciendo
+	}
+}
+
 void dibuja_tramo(GLint identificador) {
 	switch (identificador) {
 	case 1:
@@ -1245,6 +1321,19 @@ void hudElementBaseSelectorPiezas() {
 
 }
 
+int hudNumeroSelector(int tramoaux) {
+	
+	if (tramoaux >= totalTramos){
+		return tramoaux -totalTramos;
+	}
+	else if (tramoaux < 0) {
+		return tramoaux + totalTramos;
+	}
+	else {
+		return tramoaux;
+	}
+		
+}
 
 //TODO continuar con el selector de piezas, ver como hacer las animaciones mas automatizables y la colocacion de las piezas mas automatizables.
 void hudElementPiezasVisibles() {
@@ -1254,22 +1343,60 @@ void hudElementPiezasVisibles() {
 	// Z-Buffer
 	glDepthMask(GL_FALSE);
 	
-	glPushMatrix();
-
-	
 	//derecho
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	glTranslatef(0.6, 0.825-0.075, 0.8);
-	//rotacion a aplicar.
-	glRotatef(90, 1, 0, 0);
-	glRotatef(90, 0, 1, 0);
-	glRotatef(rotacion_pieza, 1, 0, 0);
 
-	Tramo(0.05,0.15,2,1).draw();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D); //habilitamos textura
+							 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
+
+							 //Uso de las texturas
+	glBindTexture(GL_TEXTURE_2D, textura_carretera);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+	//posicion izquierda central
+	glPushMatrix();
+	glTranslatef(-0.6, 0.75, 0.8);
+	//rotacion a aplicar.
+	dibuja_tramo_HUD(hudNumeroSelector(tramoactual-2));
+	glPopMatrix();
+
+
+	
+	//posicion izquierda central
+	glPushMatrix();
+	glTranslatef(-0.3, 0.75, 0.8);
+	//rotacion a aplicar.
+	dibuja_tramo_HUD(hudNumeroSelector(tramoactual-1));
+	glPopMatrix();
+
+	//posicion central
+	glPushMatrix();
+	glTranslatef(0.0, 0.75, 0.8);
+	//rotacion a aplicar.
+	dibuja_tramo_HUD(hudNumeroSelector(tramoactual));
+	glPopMatrix();
+
+	//posicion derecha central
+	glPushMatrix();
+	glTranslatef(0.3, 0.75, 0.8);
+	//rotacion a aplicar.
+	dibuja_tramo_HUD(hudNumeroSelector(tramoactual + 1) );
+	glPopMatrix();
+	
+	//posicion derecha
+	glPushMatrix();
+	glTranslatef(0.6, 0.75, 0.8);
+	//rotacion a aplicar.
+	dibuja_tramo_HUD(hudNumeroSelector(tramoactual + 2));
+	glPopMatrix();
 
 	glPopAttrib();
-	glPopMatrix();
 	// Z-Buffer a estado normal
 	glDepthMask(GL_TRUE);
 
@@ -1444,6 +1571,30 @@ void coche() {
 
 void cargarCircuito()
 {
+
+	
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D); //habilitamos textura
+	//glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
+	 
+    //Uso de las texturas
+	glBindTexture(GL_TEXTURE_2D, textura_carretera);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	if (iluminacion) {
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	}
+	else {
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	}
+
+
 	glPushMatrix();
 	{
 		glColor3f(0, 0, 0);
@@ -1463,7 +1614,7 @@ void cargarCircuito()
 		
 		//piezas a testear
 		glColor3f(0, 1, 1);
-		TramoSinuosoHorizontal(2, 4, 9,2,true, 10, 1).draw(); ejes();
+		TramoSinuosoHorizontal(2, 4, 9,2,true, 20, 1).draw(); ejes();
 		
 		glColor3f(1, 0, 0);
 		Tramo(2, 4, 10, 1).draw(); ejes();
@@ -1473,8 +1624,13 @@ void cargarCircuito()
 
 		glColor3f(1, 0.2, 0);
 		Tramo(2, 4, 10, 1).draw(); ejes();
+
+		RampaCurva(2,10,90,10,1,0.5).draw(); ejes();
+
+		TramoCurvo(2, 5, 90, 5, 1).draw(); ejes();
 	}
 	glPopMatrix();
+	glPopAttrib();
 }
 
 
@@ -1489,6 +1645,7 @@ void testeandoCircuito() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
 	
 	if (camaraLibre) {//camara libre usando trackball para ver el circuito desde arriba
 		camaraflotante.SetGluLookUp();
@@ -1697,11 +1854,16 @@ void reshape(GLint w, GLint h)
 void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
-		tramoactual = tramoactual - 1;
-
+		if (!seleccionado) {
+			tramoactual= hudNumeroSelector(tramoactual-1);
+		}
+		cout << tramoactual << " ";
 		break;
 	case GLUT_KEY_RIGHT:
-		tramoactual = tramoactual + 1;
+		if (!seleccionado) {
+			tramoactual = hudNumeroSelector(tramoactual+1);
+		}
+		cout << tramoactual << " ";
 		break;
 	case GLUT_KEY_UP:
 
@@ -2038,7 +2200,7 @@ void onIdle()
 	ahorac = glutGet(GLUT_ELAPSED_TIME); //Tiempo transcurrido desde el inicio
 	tiempo_transcurridoc = ahorac - antesc; //Tiempo transcurrido desde antes en msg.
 										
-	rotacion_pieza += float((0.018f*float(tiempo_transcurridoc)));
+	rotacion_pieza += float((0.036f*float(tiempo_transcurridoc)));
 
 	desplazamientoz += moduloVelocidad * cos(direccionVelocidad*aumentovelocidadgiro*3.1415926 / 180)*tiempo_transcurridoc / 1000;
 	desplazamientox += moduloVelocidad * sin(direccionVelocidad*aumentovelocidadgiro*3.1415926 / 180)*tiempo_transcurridoc / 1000;
@@ -2074,7 +2236,7 @@ void main(int argc, char** argv)
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
 	//glutPassiveMotionFunc(mouseMovement); //Funcion de atencion al raton pasiva siempre a la escucha
 	glutKeyboardFunc(onKeyCreacion); // Alta de la funcion de atencion al teclado
-	glutSpecialFunc(onSpecialKey);// Alta de la funcion de atencion al teclado especial
+	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
 	glutIdleFunc(onIdle); // Alta de la funcion de atencion a idle
 	init(); // Inicializacion propia
 	glutMainLoop(); // Puesta en marcha del programa
