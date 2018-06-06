@@ -4,6 +4,7 @@
 #include <Utilidades.h> // Biblioteca de Utilidades
 #include "Tramos.h" // Encabezado donde se recopilan los diferentes tramos
 #include "Camera.h" // Encabezado donde esta definida la camara.
+#include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
 #include <glm/glm.hpp>
 
 using namespace std;
@@ -27,15 +28,9 @@ GLint nivel = 1;
 
 GLfloat aumentovelocidadgiro = 10;// lo uso para probar ya que la velocidad de giro que se da en el problema es ridiculamente baja
 			
-//Lista de los identificadores de los tramos.
-GLint const totalTramos = 7;
-GLint tramos_disponibles[totalTramos];
 
-//Atributos para el funcionamiento del Hud
-GLboolean seleccionado = false;
-GLint tramoactual = 0;
-//control de la rotacion de las piezas;
-GLfloat rotacion_pieza = 0;
+
+
 
 //Identificadores listas poligonos
 GLint circuito1;
@@ -55,13 +50,7 @@ GLint recta;
 
 
 
-//Atributos de la camara
-Camera camaraflotante;
-GLfloat velocidadcamara=1.0;
 
-GLfloat xpos = 0, ypos = 0, zpos = 0, xrot = 0, yrot = 0;
-GLint reduccionVelocidadCamara = 2;
-GLfloat lastx, lasty;
 
 
 //Identificadores texturas
@@ -105,6 +94,7 @@ BOOLEAN terminado = false;
 //BOLEANOS para el juego
 BOOLEAN dentro = FALSE;
 BOOLEAN trampas = TRUE;
+
 
 
 /*
@@ -708,16 +698,6 @@ void minimapanivel1() {
 	}
 }
 
-void rellenarListaDeTramosDisponibles() {
-	
-	for (int i = 0; i < totalTramos; i++) {
-
-		tramos_disponibles[i] = i + 1;
-	}
-	
-
-}
-
 void init()
 // Funcion propia de inicializacion
 {
@@ -1174,31 +1154,33 @@ void dibuja_tramo_HUD(GLint identificador) {
 	}
 }
 
-void dibuja_tramo(GLint identificador) {
-	switch (identificador) {
+void añade_tramo(GLint identificador) {
+	// sumamos +1 ya que los arrays empiezan por 0
+	//TODO añadir la variables que utilizaré en los globals
+	switch (identificador+1) {
 	case 1:
-		Tramo();
-
+		vectorTramosEnMemoria.push_back(new Tramo(2,10,1,1) );
 		break;
 	case 2:
-		TramoCurvo();
+		vectorTramosEnMemoria.push_back(new TramoCurvo(2, 5, 90, 1, 1));
 		break;
 	case 3:
-		Rampa();
+		vectorTramosEnMemoria.push_back(new Rampa(2, 5, 1, 2, 1));
 		break;
 	case 4:
-		RampaCurva();
+		vectorTramosEnMemoria.push_back(new RampaCurva(2, 5, 90, 10, 1, 1));
 		break;
 	case 5:
-		TramoSinuosoHorizontal();
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(2, 10, 2, 1, 1, 20, 1));
 		break;
 	case 6:
-		TramoSinuosoVertical();
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, 20, 1));
 		break;
 	case 7:
-		Looping();
+		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4, 10, 1));
 		break;
 	}
+	cout << vectorTramosEnMemoria.back();
 }
 
 void hudElementBaseSelectorPiezas() {
@@ -1569,7 +1551,15 @@ void coche() {
 }
 
 
-void cargarCircuito()
+void dibujarTramosEnLista() {
+
+	for (int i = 0; i < tramosEnElVector;i++) {
+		/* std::cout << *it; ... */
+		vectorTramosEnMemoria[i]->drawing();
+	}
+}
+
+void dibujarCircuitoEnMemoria()
 {
 
 	
@@ -1625,9 +1615,11 @@ void cargarCircuito()
 		glColor3f(1, 0.2, 0);
 		Tramo(2, 4, 10, 1).draw(); ejes();
 
-		RampaCurva(2,10,90,10,1,0.5).draw(); ejes();
+		RampaCurva(2,10,1,10,1,2).draw(); ejes();
 
 		TramoCurvo(2, 5, 90, 5, 1).draw(); ejes();
+
+		dibujarTramosEnLista();
 	}
 	glPopMatrix();
 	glPopAttrib();
@@ -1666,7 +1658,7 @@ void testeandoCircuito() {
 
 
 
-	cargarCircuito();
+	dibujarCircuitoEnMemoria();
 
 
 }
@@ -1857,13 +1849,11 @@ void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
 		if (!seleccionado) {
 			tramoactual= hudNumeroSelector(tramoactual-1);
 		}
-		cout << tramoactual << " ";
 		break;
 	case GLUT_KEY_RIGHT:
 		if (!seleccionado) {
 			tramoactual = hudNumeroSelector(tramoactual+1);
 		}
-		cout << tramoactual << " ";
 		break;
 	case GLUT_KEY_UP:
 
@@ -1975,7 +1965,8 @@ void mouse(int button, int state, int x, int y)
 
 	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_UP))
 	{
-		//al soltar el boton debemos de dejar las variables de la ultima posicion a 0
+		//desactivamos la escucha
+		glutMotionFunc(NULL);
 		leftclick = false;
 	}
 
@@ -2099,6 +2090,7 @@ void onKeyOld(unsigned char tecla, int x, int y)
 			if (seleccionado)
 			{
 				//si ya se habia seleccionado una pieza la dibujamos
+
 			}
 			else
 			{
@@ -2124,8 +2116,6 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 {
 	//float xrotrad, yrotrad;
 	switch (tecla) {
-	
-	//la division /2 en xpos,zpos,ypos es simplemente para graduar el desplazamiento de la camara.
 	case 'W':
 	case 'w':
 			camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
@@ -2150,7 +2140,8 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 			if (seleccionado)
 			{
 				//si ya se habia seleccionado una pieza la dibujamos
-				dibuja_tramo(tramoactual);
+				tramosEnElVector += 1;
+				añade_tramo(tramoactual);
 			}
 			else
 			{

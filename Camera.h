@@ -10,15 +10,13 @@ Camera: Sistema de camara libre tipo FPS(primera persona)
 Dependencias:
 +glm.hpp
 +Utilidades.h
-+
++vector
 ***************************************************/
 #ifndef CAMERA_H
 #define CAMERA_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream> // Biblioteca de entrada salida
-#include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
 #include <Utilidades.h> // Biblioteca de Utilidades
 #include <vector>

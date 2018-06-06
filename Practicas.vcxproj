@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="Tramos.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
