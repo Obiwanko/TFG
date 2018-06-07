@@ -53,7 +53,7 @@ protected:
 	int _res;								// resolucion
 	int _texX;								// nº rep textura
 	float _ancho, _longitud;				// ancho y longitud del tramo
-	int id = 1;
+	const int _id = 1;
 public:
 	//valores por defecto
 
@@ -96,13 +96,22 @@ public:
 		draw();
 	}
 
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
+	virtual void writeToFile(std::ostream& o) {
+				
+		o << _id << ';' << _ancho << ';' << _longitud << '\n';
+
+	}
+
 };
 
 class TramoCurvo : public Tramo
 {
 protected:
 	float _angulo;
-	int id = 2;
+	const int  _id = 2;
 public:
 
 	TramoCurvo() : _angulo() {};
@@ -163,13 +172,22 @@ public:
 		draw();
 	}
 
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _longitud << ';' << _angulo << '\n';
+
+	}
+
 };
 
 class Rampa : public Tramo
 {
 protected:
 	float _pendiente;				// ancho y longitud del tramo
-	int id = 3;
+	const int  _id = 3;
 public:
 	//valores por defecto
 	
@@ -210,6 +228,16 @@ public:
 	virtual void drawing() {
 		draw();
 	}
+
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _longitud << ';' << _pendiente << '\n';
+
+	}
+
 };
 
 
@@ -218,7 +246,7 @@ class RampaCurva : public TramoCurvo
 protected:
 	float _angulo;
 	float _pendiente;
-	int id = 4;
+	const int  _id = 4;
 public:
 
 	RampaCurva() : _angulo() {};
@@ -287,6 +315,15 @@ public:
 		draw();
 	}
 
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _longitud << ';' << _angulo << ';' << _pendiente << '\n';
+
+	}
+
 };
 
 
@@ -297,7 +334,7 @@ protected:
 	float _ondulacion;				
 	float _orientacion;
 	float _potencia;
-	int id = 5;
+	const int  _id = 5;
 public:
 	//valores por defecto
 
@@ -368,6 +405,16 @@ public:
 	virtual void drawing() {
 		draw();
 	}
+
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _longitud << ';' << _ondulacion << ';' << _potencia << ';' << _orientacion << '\n';
+
+	}
+
 };
 
 
@@ -378,7 +425,7 @@ protected:
 	float _ondulacion;
 	float _orientacion;
 	float _potencia;
-	int id = 6;
+	const int  _id = 6;
 public:
 	//valores por defecto
 
@@ -449,6 +496,13 @@ public:
 	virtual void drawing() {
 		draw();
 	}
+
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _longitud << ';' << _ondulacion << ';' << _potencia << ';' << _orientacion << '\n';
+
+	}
+
 };
 
 
@@ -458,7 +512,7 @@ class Looping : public Tramo
 protected:
 	float _radio;
 	float _separacion;
-	int id = 7;
+	const int  _id = 7;
 public:
 
 	Looping() : _radio(),_separacion() {};
@@ -516,6 +570,12 @@ public:
 
 	virtual void drawing() {
 		draw();
+	}
+
+	virtual void writeToFile(std::ostream& o) {
+
+		o << _id << ';' << _ancho << ';' << _separacion << ';' << _radio << '\n';
+
 	}
 
 };

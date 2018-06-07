@@ -12,6 +12,19 @@ Dependencias:
 ***************************************************/
 #include "Camera.h" // Encabezado donde esta definida la camara.
 
+/*
+Variables que indican los diferentes directorios
+*/
+string const saveFolder = "./savefiles/";
+string const textureFolder = "./textures/";
+
+/*
+Variables para la resolucion y la repeticion de texturas, vendrán cargadas desde el fichero de opciones.
+//TODO quitar valor por defecto una vez implementada funcion de cargado.
+*/
+GLint resolucion = 20;
+GLint repeticionTex = 1;
+
 
 /*
 **********************************************************************
@@ -48,7 +61,5 @@ Variables de atencion a la lista de tramos que tenenemos actualmente en memoria
 //total de piezas diferentes disponibles
 GLint const totalTramos = 7;
 
-//Total de tramos en el vector
-GLint tramosEnElVector = 0;
 //Vector de Tramos cargados actualmente en memoria
 std::vector<Tramo*> vectorTramosEnMemoria;

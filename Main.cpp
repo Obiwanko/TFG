@@ -1,4 +1,5 @@
 #include <iostream> // Biblioteca de entrada salida
+#include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
 #include <Utilidades.h> // Biblioteca de Utilidades
@@ -167,6 +168,83 @@ void quadsEnCuadradosPorMetroTex(GLfloat v0[], GLfloat v1[], GLfloat v2[], GLflo
 	*/
 	//v1, v0, v3, v2,
 	quadtex( v2,v3, v0, v1, 0.0, repX, 0.0, repY, (int)distancia_horizontal *cuadradosPorMetro, (int)distancia_vertical* cuadradosPorMetro);
+}
+
+
+/*
+Funcion para identificar el tipo de tramo y añadirlo al vector en memoria que se muestra.
+*/
+void addTramoToVector(int id,int posID, string line) {
+	/*
+	No tendremos mas de 10 parametros
+	*/
+	GLfloat parameters[10];
+	
+	// Nos saltamos el primer ; ya que sabemos que es el id
+	int aux = 0;
+	string parametros = line.substr(posID+1);
+	int found = parametros.find_first_of(";");
+	//vamos añadiendo los parametros al array ya creado.
+	int i = 0;
+	while (found != std::string::npos)
+	{
+		parameters[i] = stof( parametros.substr(aux, found-aux));
+		aux = found+1;
+		found = parametros.find_first_of(";", found + 1);
+		i++;
+	}
+	parameters[i] = stof(parametros.substr(aux, parametros.length() - aux));
+	switch (id) {
+		case 1:
+			vectorTramosEnMemoria.push_back(new Tramo(parameters[0], parameters[1], resolucion, repeticionTex));
+			break;
+		case 2:
+			vectorTramosEnMemoria.push_back(new TramoCurvo(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+			break;
+		case 3:
+			vectorTramosEnMemoria.push_back(new Rampa(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+			break;
+		case 4:
+			vectorTramosEnMemoria.push_back(new RampaCurva(parameters[0], parameters[1], parameters[2], parameters[3], resolucion, repeticionTex));
+			break;
+		case 5:
+			vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
+			break;
+		case 6:
+			vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
+			break;
+		case 7:
+			vectorTramosEnMemoria.push_back(new Looping(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+			break;
+		default:
+
+			break;
+	}
+}
+
+/*
+Funciones de atencion a la carga y guardado de los ficheros.
+*/
+void cargarCircuitoFromFile(std::istream& i) {
+	auto line = std::string{};
+
+	while (std::getline(i, line)) {
+		auto pos = line.find_first_of(';');
+		string id = line.substr(0, pos);
+		addTramoToVector(std::stoi(id),pos, line);
+		//vectorTramosEnMemoria.push_back(new Student{ std::string{ line, 0, pos },std::string{ line, pos + 1 } });
+	}
+}
+
+void guardarCircuitoToFile() {
+	//TODO hacer que el fichero se introduzca por pantalla.
+	std::ofstream file(saveFolder + "test.txt");
+	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
+		/* std::cout << *it; ... */
+		vectorTramosEnMemoria[i]->writeToFile(file);
+
+	}
+	file.close();
 }
 
 
@@ -701,6 +779,9 @@ void minimapanivel1() {
 void init()
 // Funcion propia de inicializacion
 {
+	std::ifstream infile(saveFolder+"test.txt");
+	cargarCircuitoFromFile(infile);
+
 	if (test) {
 		glClearColor(1.0, 1.0, 1.0, 1.0);
 		glEnable(GL_DEPTH_TEST);
@@ -1177,7 +1258,7 @@ void añade_tramo(GLint identificador) {
 		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, 20, 1));
 		break;
 	case 7:
-		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4, 10, 1));
+		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, 10, 1));
 		break;
 	}
 	cout << vectorTramosEnMemoria.back();
@@ -1553,9 +1634,10 @@ void coche() {
 
 void dibujarTramosEnLista() {
 
-	for (int i = 0; i < tramosEnElVector;i++) {
+	for (int i = 0; i < vectorTramosEnMemoria.size();i++) {
 		/* std::cout << *it; ... */
 		vectorTramosEnMemoria[i]->drawing();
+		//cout << " dibujando tramos " << i;
 	}
 }
 
@@ -1587,38 +1669,6 @@ void dibujarCircuitoEnMemoria()
 
 	glPushMatrix();
 	{
-		glColor3f(0, 0, 0);
-		Tramo(2, 4, 10, 1).draw(); ejes();
-
-		glColor3f(1, 0, 1);
-		TramoCurvo(2, 5, -90, 5, 1).draw(); ejes();
-
-		glColor3f(0, 0, 1);
-		TramoCurvo(2, 5, -90, 5, 1).draw(); ejes();
-
-		Tramo(2, 4, 10, 1).draw(); ejes();
-
-		Looping(2,4,3,20,1).draw(); ejes();
-
-		Tramo(2, 4, 10, 1).draw(); ejes();
-		
-		//piezas a testear
-		glColor3f(0, 1, 1);
-		TramoSinuosoHorizontal(2, 4, 9,2,true, 20, 1).draw(); ejes();
-		
-		glColor3f(1, 0, 0);
-		Tramo(2, 4, 10, 1).draw(); ejes();
-
-		glColor3f(0, 0.2, 0);
-		TramoSinuosoVertical(2, 4, 2,2, false, 10, 1).draw(); ejes();
-
-		glColor3f(1, 0.2, 0);
-		Tramo(2, 4, 10, 1).draw(); ejes();
-
-		RampaCurva(2,10,1,10,1,2).draw(); ejes();
-
-		TramoCurvo(2, 5, 90, 5, 1).draw(); ejes();
-
 		dibujarTramosEnLista();
 	}
 	glPopMatrix();
@@ -1981,133 +2031,8 @@ void mouse(int button, int state, int x, int y)
 	}
 }
 
-void onKeyOld(unsigned char tecla, int x, int y)
-// Funcion de atencion al teclado
-{
-	//float xrotrad, yrotrad;
-	switch (tecla) {
 
-		//la division /2 en xpos,zpos,ypos es simplemente para graduar el desplazamiento de la camara.
-	case 'W':
-	case 'w':
-		/* Antiguo metodo ahora en desuso
 
-		yrotrad =  (yrot / 180 * 3.141592654f);
-		xrotrad = (xrot / 180 * 3.141592654f);
-		cout << "\n xpos " << xpos << " ypos " << ypos << " zpos " << zpos  << " yrotad " << yrot << " xrotrad " << xrot;
-		xpos += float(sin(yrotrad))/ reduccionVelocidadCamara;
-		zpos -= float(cos(yrotrad))/ reduccionVelocidadCamara;
-
-		ypos -= float(sin(xrotrad))/ reduccionVelocidadCamara;
-
-		*/
-		camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
-		break;
-
-	case 'S':
-	case 's':
-		/*
-		yrotrad = (yrot / 180 * 3.141592654f);
-		xrotrad = (xrot / 180 * 3.141592654f);
-		xpos -= float(sin(yrotrad))/ reduccionVelocidadCamara;
-		zpos += float(cos(yrotrad))/ reduccionVelocidadCamara;
-		ypos += float(sin(xrotrad))/ reduccionVelocidadCamara;
-		*/
-		camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
-		break;
-
-	case 'D':
-	case 'd':
-
-		/*
-		yrotrad = (yrot / 180 * 3.141592654f);
-		xpos += float(cos(yrotrad)) * 0.2;
-		zpos += float(sin(yrotrad)) * 0.2;
-		*/
-		camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
-		break;
-	case 'A':
-	case 'a':
-		/*
-		yrotrad = (yrot / 180 * 3.141592654f);
-		xpos -= float(cos(yrotrad)) * 0.2;
-		zpos -= float(sin(yrotrad)) * 0.2;
-		*/
-		camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
-		break;
-
-		/*
-		case 's':
-		case 'S':
-		alambricoSimple = !alambricoSimple;
-
-		break;
-		*/
-
-	case 'l':
-	case 'L':
-		diurnoNocturno = !diurnoNocturno;
-
-		break;
-	case 'n':
-	case 'N':
-		niebla = !niebla;
-
-		break;
-
-	case 'g':
-	case 'G':
-		camaraLibre = !camaraLibre;
-		break;
-	case ' '://Freno de mano
-			 //TODO añadir el fijado de camara sobre la pieza actual
-
-		moduloVelocidad = moduloVelocidad - 1.0;
-		if (moduloVelocidad < 0) {
-			moduloVelocidad = 0;
-		}
-		rotacion_velocidad = moduloVelocidad * 10;
-		break;
-	case 'c':
-	case 'C':
-		hud = !hud;
-		break;
-	case 'p':
-	case 'P':
-		saveScreenshot("foto.jpg", ancho, alto);
-		break;
-	case '1':
-		nivel = 1;
-		reinicio();
-		break;
-	case '2':
-		nivel = 2;
-		reinicio();
-		break;
-	case 13:
-
-		if (creacion) {
-			if (seleccionado)
-			{
-				//si ya se habia seleccionado una pieza la dibujamos
-
-			}
-			else
-			{
-				// si no, simplemente marcamos la pieza como seleccionada
-			}
-			seleccionado = !seleccionado;
-		}
-		break;
-	case 27: // Pulso escape
-			 //TODO AÑADIR MENU
-		exit(0);
-	}
-	stringstream titulo;
-	titulo << "Circuito final: " << moduloVelocidad << " m/s";
-	glutSetWindowTitle(titulo.str().c_str()); // Pone el titulo
-
-}
 
 
 
@@ -2140,7 +2065,6 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 			if (seleccionado)
 			{
 				//si ya se habia seleccionado una pieza la dibujamos
-				tramosEnElVector += 1;
 				añade_tramo(tramoactual);
 			}
 			else
@@ -2151,6 +2075,7 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		break;
 	case 27: // Pulso escape
 		//TODO AÑADIR MENU
+		guardarCircuitoToFile();
 		exit(0);
 	}
 	stringstream titulo;
