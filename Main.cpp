@@ -6,8 +6,8 @@
 #include "Tramos.h" // Encabezado donde se recopilan los diferentes tramos
 #include "Camera.h" // Encabezado donde esta definida la camara.
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
-#include <glm/glm.hpp>
 
+#include <glm/glm.hpp>
 using namespace std;
 //Para hace el screenshot
 GLint ancho;
@@ -240,9 +240,7 @@ void guardarCircuitoToFile() {
 	//TODO hacer que el fichero se introduzca por pantalla.
 	std::ofstream file(saveFolder + "test.txt");
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
-		/* std::cout << *it; ... */
 		vectorTramosEnMemoria[i]->writeToFile(file);
-
 	}
 	file.close();
 }
@@ -391,6 +389,7 @@ void dibuja_meta( GLfloat x, GLfloat z) {
 
 	glPopAttrib();
 }
+
 
 void iluminacion() {
 	// Luces
@@ -1261,7 +1260,6 @@ void añade_tramo(GLint identificador) {
 		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, 10, 1));
 		break;
 	}
-	cout << vectorTramosEnMemoria.back();
 }
 
 void hudElementBaseSelectorPiezas() {
@@ -1635,9 +1633,7 @@ void coche() {
 void dibujarTramosEnLista() {
 
 	for (int i = 0; i < vectorTramosEnMemoria.size();i++) {
-		/* std::cout << *it; ... */
 		vectorTramosEnMemoria[i]->drawing();
-		//cout << " dibujando tramos " << i;
 	}
 }
 
@@ -1717,7 +1713,6 @@ void display()
 // Funcion de atencion al dibujo
 {
 	if (test) {
-
 		testeandoCircuito();
 		
 		//if(modo==creacion) si estamos en modo creacion se aplicarán unas reglas
@@ -1762,7 +1757,6 @@ void display()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Borra la pantalla
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		//cout << desplazamientox << " x " << desplazamientoz << " z \n";
 		if (alambricoSimple) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			glDisable(GL_TEXTURE_2D);
@@ -2073,6 +2067,15 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 			}
 			seleccionado = !seleccionado;
 		break;
+	case 8: //se pulsa retroceso.
+		if (seleccionado) // si una pieza esta seleccionada la deseleccionamos
+			seleccionado = !seleccionado;
+		else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
+			if (!vectorTramosEnMemoria.empty()) {
+				vectorTramosEnMemoria.pop_back();
+			}
+		}
+		break;
 	case 27: // Pulso escape
 		//TODO AÑADIR MENU
 		guardarCircuitoToFile();
@@ -2138,15 +2141,19 @@ void onIdle()
 }
 
 
+
 void main(int argc, char** argv)
 // Programa principal
 {
 	FreeImage_Initialise();
 	glutInit(&argc, argv); // Inicializacion de GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Alta de buffers a usar
+	//Todo cambiarlo para que vaya por opciones
 	glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
 
 	glutCreateWindow("Circuito final: 0 m/s");	// Pone el titulo para que se vaya actualizando luego en onkey
+
+	
 	glutDisplayFunc(display); // Alta de la funcion de atencion a display
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton

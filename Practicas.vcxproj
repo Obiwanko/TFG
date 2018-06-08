@@ -24,6 +24,8 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="StateEngine.h" />
     <ClInclude Include="Tramos.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -80,7 +82,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>S:\GL\include;S:\GL\include;$(IncludePath);S:\glm</IncludePath>
+    <IncludePath>S:\GL\include;S:\GL\include;$(IncludePath);S:\glm;$(IncludePath)</IncludePath>
     <LibraryPath>S:\GL\lib;S:\GL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -88,7 +90,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>S:\GL\include;C:\GL\include;$(IncludePath);S:\glm</IncludePath>
+    <IncludePath>S:\GL\include;C:\GL\include;$(IncludePath);S:\glm;$(IncludePath)</IncludePath>
     <LibraryPath>S:\GL\lib;C:\GL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
