@@ -1422,6 +1422,7 @@ void hudElementPiezasVisibles() {
 
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//Posible problema con la luz
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D); //habilitamos textura
 							 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
@@ -2179,8 +2180,8 @@ void main(int argc, char** argv)
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
 	//glutPassiveMotionFunc(mouseMovement); //Funcion de atencion al raton pasiva siempre a la escucha
-	glutKeyboardFunc(onKeyCreacion); // Alta de la funcion de atencion al teclado
-	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
+	//glutKeyboardFunc(onKeyCreacion); // Alta de la funcion de atencion al teclado
+	//glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
 	glutIdleFunc(onIdle); // Alta de la funcion de atencion a idle
 	init(); // Inicializacion propia
 
