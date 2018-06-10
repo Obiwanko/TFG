@@ -10,20 +10,26 @@ Camera: Sistema de camara libre tipo FPS(primera persona)
 Dependencias:
 +Camera.h
 ***************************************************/
+#ifndef GLOBALS_H
+#define GLOBALS_H
+
 #include "Camera.h" // Encabezado donde esta definida la camara.
+#include "StateEngine.h"
+
+extern StateEngine engine;
 
 /*
 Variables que indican los diferentes directorios
 */
-string const saveFolder = "./savefiles/";
-string const textureFolder = "./textures/";
+extern string const saveFolder = "./savefiles/";
+extern string const textureFolder = "./textures/";
 
 /*
 Variables para la resolucion y la repeticion de texturas, vendrán cargadas desde el fichero de opciones.
 //TODO quitar valor por defecto una vez implementada funcion de cargado.
 */
-GLint resolucion = 20;
-GLint repeticionTex = 1;
+extern GLint resolucion = 20;
+extern GLint repeticionTex = 1;
 
 
 /*
@@ -31,9 +37,9 @@ GLint repeticionTex = 1;
 Variables de usadas para el funcionamiento de la camara
 **********************************************************************
 */
-Camera camaraflotante;
-GLfloat velocidadcamara = 1.0;
-GLfloat lastx, lasty;
+extern Camera camaraflotante;
+extern GLfloat velocidadcamara = 1.0;
+extern GLfloat lastx, lasty;
 
 
 /*
@@ -42,13 +48,13 @@ Variables de atencion al HUD en el modo de creacion de circuitos
 
 */
 //si el tramo esta seleccionado o no(ya se ha pulsado enter)
-GLboolean seleccionado = false;
+extern GLboolean seleccionado = false;
 
 // indica que tramo tenenemos enfocado, en caso de pulsar enter dibujaremos dicho tramo
-GLint tramoactual = 0;
+extern GLint tramoactual = 0;
 
 //control de la rotacion de las piezas en el HUD
-GLfloat rotacion_pieza = 0;
+extern GLfloat rotacion_pieza = 0;
 
 
 
@@ -59,7 +65,8 @@ Variables de atencion a la lista de tramos que tenenemos actualmente en memoria
 */
 
 //total de piezas diferentes disponibles
-GLint const totalTramos = 7;
+extern GLint const totalTramos = 7;
 
 //Vector de Tramos cargados actualmente en memoria
-std::vector<Tramo*> vectorTramosEnMemoria;
+extern std::vector<Tramo*> vectorTramosEnMemoria;
+#endif

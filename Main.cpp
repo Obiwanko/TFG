@@ -2,12 +2,13 @@
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
-#include <Utilidades.h> // Biblioteca de Utilidades
+//#include <Utilidades.h> // Biblioteca de Utilidades
 #include "Tramos.h" // Encabezado donde se recopilan los diferentes tramos
 #include "Camera.h" // Encabezado donde esta definida la camara.
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
-
+#include "MainMenuState.h" //Encabezado donde queda definida la clase del menu principal
 #include <glm/glm.hpp>
+
 using namespace std;
 //Para hace el screenshot
 GLint ancho;
@@ -48,7 +49,6 @@ GLint meta;
 GLint hierba;
 GLint aguja;
 GLint recta;
-
 
 
 
@@ -95,6 +95,15 @@ BOOLEAN terminado = false;
 //BOLEANOS para el juego
 BOOLEAN dentro = FALSE;
 BOOLEAN trampas = TRUE;
+
+//Variables globales
+
+//Variables de la camara
+Camera camaraflotante;
+//variables de uso del raton
+GLfloat lastx, lasty;
+
+std::vector<Tramo*> vectorTramosEnMemoria;
 
 
 
@@ -1190,45 +1199,45 @@ void dibuja_tramo_HUD(GLint identificador) {
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Tramo(0.05, 0.15, 2, 1).draw();
+		Tramo(0.05, 0.15, resolucion, repeticionTex).draw();
 		break;
 	case 2:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		TramoCurvo(0.05,0.15,90,10,1).draw();
+		TramoCurvo(0.05,0.15,90, resolucion, repeticionTex).draw();
 		break;
 	case 3:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Rampa(0.05, 0.10,0.5, 1, 1).draw();
+		Rampa(0.05, 0.10,0.5, resolucion, repeticionTex).draw();
 		break;
 	case 4:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		RampaCurva(0.05, 0.08, 90,10, 2, 1).draw();
+		RampaCurva(0.05, 0.08, 90,10, resolucion, repeticionTex).draw();
 		break;
 	case 5:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoHorizontal(5,15,2,2,true,20,1).draw();
+		TramoSinuosoHorizontal(5,15,2,2,true, resolucion, repeticionTex).draw();
 		break;
 	case 6:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoVertical(5, 15, 2, 2, true, 20, 1).draw();
+		TramoSinuosoVertical(5, 15, 2, 2, true, resolucion, repeticionTex).draw();
 		break;
 	case 7:
 		//glRotatef(-180, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 0, 1, 0);
-		Looping(0.05,0.06,0.08,20,1).draw();
+		Looping(0.05,0.06,0.08, resolucion, repeticionTex).draw();
 		break;
 	//TODO añadir nuevas piezas conforme las vaya haciendo
 	}
@@ -1239,25 +1248,25 @@ void añade_tramo(GLint identificador) {
 	//TODO añadir la variables que utilizaré en los globals
 	switch (identificador+1) {
 	case 1:
-		vectorTramosEnMemoria.push_back(new Tramo(2,10,1,1) );
+		vectorTramosEnMemoria.push_back(new Tramo(2,10, resolucion, repeticionTex) );
 		break;
 	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(2, 5, 90, 1, 1));
+		vectorTramosEnMemoria.push_back(new TramoCurvo(2, 5, 90, resolucion, repeticionTex));
 		break;
 	case 3:
-		vectorTramosEnMemoria.push_back(new Rampa(2, 5, 1, 2, 1));
+		vectorTramosEnMemoria.push_back(new Rampa(2, 5, 1, resolucion, repeticionTex));
 		break;
 	case 4:
-		vectorTramosEnMemoria.push_back(new RampaCurva(2, 5, 90, 10, 1, 1));
+		vectorTramosEnMemoria.push_back(new RampaCurva(2, 5, 90, 10, resolucion, repeticionTex));
 		break;
 	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(2, 10, 2, 1, 1, 20, 1));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(2, 10, 2, 1, 1, resolucion, repeticionTex));
 		break;
 	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, 20, 1));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, resolucion, repeticionTex));
 		break;
 	case 7:
-		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, 10, 1));
+		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, resolucion, repeticionTex));
 		break;
 	}
 }
@@ -2149,11 +2158,9 @@ void main(int argc, char** argv)
 	glutInit(&argc, argv); // Inicializacion de GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Alta de buffers a usar
 	//Todo cambiarlo para que vaya por opciones
-	glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
-
-	glutCreateWindow("Circuito final: 0 m/s");	// Pone el titulo para que se vaya actualizando luego en onkey
-
 	
+	glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
+	glutCreateWindow("Creador Circuitos");	// Pone el titulo para que se vaya actualizando luego en onkey
 	glutDisplayFunc(display); // Alta de la funcion de atencion a display
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
@@ -2162,7 +2169,9 @@ void main(int argc, char** argv)
 	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
 	glutIdleFunc(onIdle); // Alta de la funcion de atencion a idle
 	init(); // Inicializacion propia
+
 	glutMainLoop(); // Puesta en marcha del programa
+
 	FreeImage_DeInitialise();
 
 }
