@@ -3,7 +3,7 @@
 
 
 void StateEngine::Init(const char* title, int width, int heigth,  bool fullscreen) {
-	/*
+	
 		glutInitWindowSize(width, heigth); // Tamanyo inicial de la ventana
 	glutCreateWindow(title);	// Pone el titulo para que se vaya actualizando luego en onkey
 	if (fullscreen) {
@@ -11,7 +11,7 @@ void StateEngine::Init(const char* title, int width, int heigth,  bool fullscree
 	}
 	running = true;
 	
-	*/
+	
 
 }
 
@@ -22,7 +22,6 @@ void StateEngine::Cleanup()
 		states.back()->Cleanup();
 		states.pop_back();
 	}
-	
 	exit(0);
 }
 
@@ -66,14 +65,17 @@ void StateEngine::PopState()
 
 void StateEngine::HandleEvents()
 {
-	states.back()->HandleEvents(this);
+	if (!states.empty())
+	states.back()->HandleEvents();
 }
 
 void StateEngine::Update()
 {
-	states.back()->Update(this);
+	if (!states.empty())
+	states.back()->Update();
 }
 
 void StateEngine::Draw() {
-	states.back()->Draw(this);
+	if(!states.empty())
+	states.back()->Draw();
 }

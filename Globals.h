@@ -14,10 +14,6 @@ Dependencias:
 #define GLOBALS_H
 
 #include "Camera.h" // Encabezado donde esta definida la camara.
-#include "StateEngine.h"
-
-extern StateEngine engine;
-
 /*
 Variables que indican los diferentes directorios
 */

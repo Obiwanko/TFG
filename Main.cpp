@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
-//#include <Utilidades.h> // Biblioteca de Utilidades
+#include <Utilidades.h> // Biblioteca de Utilidades
 #include "Tramos.h" // Encabezado donde se recopilan los diferentes tramos
 #include "Camera.h" // Encabezado donde esta definida la camara.
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
@@ -103,6 +103,10 @@ Camera camaraflotante;
 //variables de uso del raton
 GLfloat lastx, lasty;
 
+//CLASE manejadora de estados
+StateEngine engine;
+
+//vector donde se guardaran las piezas colocadas
 std::vector<Tramo*> vectorTramosEnMemoria;
 
 
@@ -2150,6 +2154,10 @@ void onIdle()
 }
 
 
+void testo() {
+	engine.Draw();
+	glutSwapBuffers(); // Intercambia los buffers
+}
 
 void main(int argc, char** argv)
 // Programa principal
@@ -2159,9 +2167,15 @@ void main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Alta de buffers a usar
 	//Todo cambiarlo para que vaya por opciones
 	
-	glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
-	glutCreateWindow("Creador Circuitos");	// Pone el titulo para que se vaya actualizando luego en onkey
-	glutDisplayFunc(display); // Alta de la funcion de atencion a display
+	//glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
+	//glutCreateWindow("Creador Circuitos");	// Pone el titulo para que se vaya actualizando luego en onkey
+	//glutDisplayFunc(display); // Alta de la funcion de atencion a display
+	engine.Init("test");
+	
+	MainMenuState* a = MainMenuState::Instance();
+	engine.ChangeState(a);
+	glutDisplayFunc(testo);
+
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
 	//glutPassiveMotionFunc(mouseMovement); //Funcion de atencion al raton pasiva siempre a la escucha

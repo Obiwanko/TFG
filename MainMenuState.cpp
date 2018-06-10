@@ -1,11 +1,41 @@
 #include "StateEngine.h"
 #include "State.h"
 #include "MainMenuState.h"
-
 //#include <Utilidades.h> // Biblioteca de Utilidades
+	MainMenuState MainMenuState::_MainMenuState;
 
+	void MainMenuState::Init() {
+
+	}
+
+	void MainMenuState::Cleanup() {
+
+	}
+
+
+	void MainMenuState::Resume() {
+
+	}
+
+	void MainMenuState::Pause() {
+
+	}
+
+
+	void MainMenuState::HandleEvents() {
+
+	}
+
+
+	void MainMenuState::Update() {
+
+	}
+
+
+
+	//TODO completar esta mision
 	void MainMenuState::Draw() {
-	/*
+	
 			//HUD
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
@@ -41,8 +71,9 @@
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
-	*/
+	
 
 
 	}
+
 

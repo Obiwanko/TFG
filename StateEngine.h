@@ -1,6 +1,10 @@
 #ifndef ENGINESTATE_H
 #define ENGINESTATE_H
 #include <vector>
+#include <GL/freeglut.h>
+#include <GL/glext.h>
+#include <freeimage/FreeImage.h>
+
 using namespace std;
 
 class State;

@@ -14,13 +14,18 @@ public:
 	void Pause();
 	void Resume();
 
-	void HandleEvents(StateEngine* game);
-	void Update(StateEngine* game);
+	void HandleEvents();
+	void Update();
 	void Draw();
+	
+	void ChangeState(StateEngine* game, State* state) {
+		game->ChangeState(state);
+	}
+
 
 	static MainMenuState* Instance() {
 		return &_MainMenuState;
-	}
+	};
 
 protected:
 	MainMenuState() { }
