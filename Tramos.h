@@ -16,6 +16,7 @@ Dependencias:
 +utilidades.h
 ***************************************************/ 
 #include <Utilidades.h> // Biblioteca de Utilidades
+#include <cmath> // Biblioteca matematica de C
 
 
 
@@ -383,8 +384,6 @@ public:
 			v3.y = 0;
 			v3.z = (-_ancho / 2) + _potencia *cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
 
-			//cout << float(i * 2 * PI) / _res << " " ;
-
 			v2.x = inc * _longitud;
 			v2.y = 0;
 			v2.z = (_ancho / 2) + _potencia *cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
@@ -474,8 +473,6 @@ public:
 			v3.y = _potencia*cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
 			v3.z = (-_ancho / 2);
 
-			//cout << float(i * 2 * PI) / _res << " " ;
-
 			v2.x = inc * _longitud;
 			v2.y = _potencia*cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
 			v2.z = (_ancho / 2);
@@ -550,7 +547,6 @@ public:
 			v3.y = (_radio * sin(((i + 1)*angulo_quad) - rad(abs(90) ))) +_radio;
 			v3.z = (-_ancho / 2) + inc * _separacion;
 
-			//cout << float(i * 2 * PI) / _res << " " ;
 
 			v2.x = (_radio * cos(((i + 1)*angulo_quad) - rad(abs(90) ) ) );
 			v2.y = (_radio * sin(((i + 1)*angulo_quad) - rad(abs(90) ) ) )+_radio;

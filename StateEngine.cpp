@@ -34,7 +34,7 @@ void StateEngine::ChangeState(State* state)
 	}
 	// store and init the new state
 	states.push_back(state);
-	states.back()->Init();
+	states.back()->Init(this);
 }
 
 void StateEngine::PushState(State* state)
@@ -46,7 +46,7 @@ void StateEngine::PushState(State* state)
 
 	// store and init the new state
 	states.push_back(state);
-	states.back()->Init();
+	states.back()->Init(this);
 }
 
 void StateEngine::PopState()
@@ -66,16 +66,16 @@ void StateEngine::PopState()
 void StateEngine::HandleEvents()
 {
 	if (!states.empty())
-	states.back()->HandleEvents();
+	states.back()->HandleEvents(this);
 }
 
 void StateEngine::Update()
 {
 	if (!states.empty())
-	states.back()->Update();
+	states.back()->Update(this);
 }
 
 void StateEngine::Draw() {
 	if(!states.empty())
-	states.back()->Draw();
+	states.back()->Draw(this);
 }

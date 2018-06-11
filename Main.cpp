@@ -3,8 +3,6 @@
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
 #include <Utilidades.h> // Biblioteca de Utilidades
-#include "Tramos.h" // Encabezado donde se recopilan los diferentes tramos
-#include "Camera.h" // Encabezado donde esta definida la camara.
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
 #include "MainMenuState.h" //Encabezado donde queda definida la clase del menu principal
 #include <glm/glm.hpp>
@@ -31,8 +29,14 @@ GLint nivel = 1;
 GLfloat aumentovelocidadgiro = 10;// lo uso para probar ya que la velocidad de giro que se da en el problema es ridiculamente baja
 			
 
+//declaraciones de las variables globales
+ string saveFolder = "./savefiles/";
+ string textureFolder = "./textures/";
 
 
+ GLint resolucion = 0;
+ GLint repeticionTex = 0;
+ GLboolean fullscreen = false;
 
 //Identificadores listas poligonos
 GLint circuito1;
@@ -54,32 +58,6 @@ GLint recta;
 
 
 
-//Identificadores texturas
-GLuint textura_carretera;
-GLuint textura_fondo;
-GLuint textura_nukacola;
-GLuint textura_metal;
-GLuint textura_slurm;
-GLuint textura_sonic;
-GLuint textura_hierba;
-GLuint textura_panel_trasero;
-GLuint textura_cielonoche;
-GLuint textura_cielodia;
-GLuint textura_victoria;
-GLuint textura_velocimetro;
-GLuint textura_aguja;
-GLuint textura_bandera1;
-GLuint textura_bandera2;
-GLuint textura_bandera3;
-GLuint textura_goal;
-GLuint textura_start;
-GLuint textura_coche;
-
-//boleanos de click izquierdo/click derecho
-
-BOOLEAN leftclick=false;
-BOOLEAN rightclick=false;
-
 //Activadores de modos
 
 BOOLEAN test = true; //Variable para el control del testeo de niveles.
@@ -97,11 +75,6 @@ BOOLEAN dentro = FALSE;
 BOOLEAN trampas = TRUE;
 
 //Variables globales
-
-//Variables de la camara
-Camera camaraflotante;
-//variables de uso del raton
-GLfloat lastx, lasty;
 
 //CLASE manejadora de estados
 StateEngine engine;
@@ -184,296 +157,7 @@ void quadsEnCuadradosPorMetroTex(GLfloat v0[], GLfloat v1[], GLfloat v2[], GLflo
 }
 
 
-/*
-Funcion para identificar el tipo de tramo y añadirlo al vector en memoria que se muestra.
-*/
-void addTramoToVector(int id,int posID, string line) {
-	/*
-	No tendremos mas de 10 parametros
-	*/
-	GLfloat parameters[10];
-	
-	// Nos saltamos el primer ; ya que sabemos que es el id
-	int aux = 0;
-	string parametros = line.substr(posID+1);
-	int found = parametros.find_first_of(";");
-	//vamos añadiendo los parametros al array ya creado.
-	int i = 0;
-	while (found != std::string::npos)
-	{
-		parameters[i] = stof( parametros.substr(aux, found-aux));
-		aux = found+1;
-		found = parametros.find_first_of(";", found + 1);
-		i++;
-	}
-	parameters[i] = stof(parametros.substr(aux, parametros.length() - aux));
-	switch (id) {
-		case 1:
-			vectorTramosEnMemoria.push_back(new Tramo(parameters[0], parameters[1], resolucion, repeticionTex));
-			break;
-		case 2:
-			vectorTramosEnMemoria.push_back(new TramoCurvo(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
-			break;
-		case 3:
-			vectorTramosEnMemoria.push_back(new Rampa(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
-			break;
-		case 4:
-			vectorTramosEnMemoria.push_back(new RampaCurva(parameters[0], parameters[1], parameters[2], parameters[3], resolucion, repeticionTex));
-			break;
-		case 5:
-			vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
-			break;
-		case 6:
-			vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
-			break;
-		case 7:
-			vectorTramosEnMemoria.push_back(new Looping(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
-			break;
-		default:
 
-			break;
-	}
-}
-
-/*
-Funciones de atencion a la carga y guardado de los ficheros.
-*/
-void cargarCircuitoFromFile(std::istream& i) {
-	auto line = std::string{};
-
-	while (std::getline(i, line)) {
-		auto pos = line.find_first_of(';');
-		string id = line.substr(0, pos);
-		addTramoToVector(std::stoi(id),pos, line);
-		//vectorTramosEnMemoria.push_back(new Student{ std::string{ line, 0, pos },std::string{ line, pos + 1 } });
-	}
-}
-
-void guardarCircuitoToFile() {
-	//TODO hacer que el fichero se introduzca por pantalla.
-	std::ofstream file(saveFolder + "test.txt");
-	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
-		vectorTramosEnMemoria[i]->writeToFile(file);
-	}
-	file.close();
-}
-
-
-
-void init_de_Textura(GLuint &id, char* nombre)
-{
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	loadImageFile(nombre);
-}
-
-void dibuja_anuncio(GLuint &id, GLfloat x, GLfloat z) {
-	//Anuncios
-
-	glPushAttrib(GL_CURRENT_BIT);
-	glBindTexture(GL_TEXTURE_2D, id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	
-
-	GLfloat v0[] = { x - 3,5,z };
-	GLfloat v1[] = { x + 3,5,z };
-	GLfloat v2[] = { x + 3,2,z };
-	GLfloat v3[] = { x - 3,2,z };
-	quadtex(v3, v2, v1, v0, 0.0, 1, 0.0, 1, 20, 20);
-
-	glBindTexture(GL_TEXTURE_2D, textura_metal);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-
-
-	glBegin(GL_QUAD_STRIP);
-	glNormal3f(0, 0, 1);
-	glTexCoord2f(0, 0);
-	glVertex3f(x - 2.5, 0, z - 0.01);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(x - 2.5, 5, z - 0.01);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(x - 2, 0, z - 0.01);
-
-	glTexCoord2f(1, 1);
-	glVertex3f(x - 2, 5, z - 0.01);
-	glEnd();
-
-	glBegin(GL_QUAD_STRIP);
-	glNormal3f(0, 0, 1);
-	glTexCoord2f(0, 0);
-	glVertex3f(x + 2, 0, z - 0.01);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(x + 2, 5, z - 0.01);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(x + 2.5, 0, z - 0.01);
-
-	glTexCoord2f(1, 1);
-	glVertex3f(x + 2.5, 5, z - 0.01);
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, textura_panel_trasero);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-
-	 v0[2] = z - 0.001 ;
-	 v1[2] = z - 0.001 ;
-	 v2[2] = z - 0.001 ;
-	 v3[2] = z - 0.001 ;
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 20, 20);
-
-
-
-	glPopAttrib();
-}
-
-void dibuja_meta( GLfloat x, GLfloat z) {
-	//Anuncios
-	glPushAttrib(GL_CURRENT_BIT);
-	glBindTexture(GL_TEXTURE_2D, textura_start);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	GLfloat v0[] = { x - 3,5,z };
-	GLfloat v1[] = { x + 3,5,z  };
-	GLfloat v2[] = { x + 3,2,z  };
-	GLfloat v3[] = { x - 3,2,z  };
-	quadtex(v3, v2, v1, v0, 0.0, 1, 0.0, 1, 20, 20);
-
-
-	glBindTexture(GL_TEXTURE_2D,  textura_metal);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(x - 2.5, 0, z - 0.01);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(x - 2.5, 5, z - 0.01);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(x - 2, 0, z - 0.01);
-
-	glTexCoord2f(1, 1);
-	glVertex3f(x - 2, 5, z - 0.01);
-	glEnd();
-
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(x + 2, 0, z - 0.01);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(x + 2, 5, z - 0.01);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(x + 2.5, 0, z - 0.01);
-
-	glTexCoord2f(1, 1);
-	glVertex3f(x + 2.5, 5, z - 0.01);
-	glEnd();
-
-	glBindTexture(GL_TEXTURE_2D, textura_goal);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-
-	v0[2] = z - 0.02;
-	v1[2] = z - 0.02;
-	v2[2] = z - 0.02;
-	v3[2] = z - 0.02;
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 20, 20);
-
-
-
-	glPopAttrib();
-}
-
-
-void iluminacion() {
-	// Luces
-	//Luz de la luna
-	glEnable(GL_LIGHT0);
-	GLfloat ambiental0[4] = { (0.05f),(0.05f),(0.05f) ,(1.0f) };
-	GLfloat difusa0[4] = { (0.05f),(0.05f),(0.05f) ,(1.0f) };
-	GLfloat especular0[4] = { (0.0f),(0.0f),(0.0f) ,(1.0f) };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambiental0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, difusa0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, especular0);
-	GLfloat posicion0[] = { 0.0f, 10.0f, 0.0f, 0.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, posicion0);
-
-	//Luz del coche
-	glEnable(GL_LIGHT1);
-	GLfloat ambiental1[4] = { (0.2f),(0.2f),(0.2f) ,(1.0f) };
-	GLfloat difusa1[4] = { (1.0f),(1.0f),(1.0f) ,(1.0f) };
-	GLfloat especular1[4] = { (0.3f),(0.3f),(0.3f) ,(0.3f) };
-
-	glLightfv(GL_LIGHT1, GL_AMBIENT, ambiental1);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, difusa1);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, especular1);
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 25.0);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 20);
-
-	//Farolas
-	GLfloat ambiental2[] = { (0.0f),(0.0f),(0.0f) ,(1.0f) };
-	GLfloat difusa2[] = { (0.5f),(0.5f),(0.2f) ,(1.0f) };
-	GLfloat especular2[] = { (0.0f),(0.0f),(0.0f) ,(1.0f) };
-
-	glEnable(GL_LIGHT2);
-	glLightfv(GL_LIGHT2, GL_AMBIENT, ambiental2);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, difusa2);
-	glLightfv(GL_LIGHT2, GL_SPECULAR, especular2);
-	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 45.0);
-	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 10.0);
-
-	glEnable(GL_LIGHT3);
-	glLightfv(GL_LIGHT3, GL_AMBIENT, ambiental2);
-	glLightfv(GL_LIGHT3, GL_DIFFUSE, difusa2);
-	glLightfv(GL_LIGHT3, GL_SPECULAR, especular2);
-	glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, 45.0);
-	glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, 10.0);
-
-	glEnable(GL_LIGHT4);
-	glLightfv(GL_LIGHT4, GL_AMBIENT, ambiental2);
-	glLightfv(GL_LIGHT4, GL_DIFFUSE, difusa2);
-	glLightfv(GL_LIGHT4, GL_SPECULAR, especular2);
-	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 45.0);
-	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10.0);
-
-	glEnable(GL_LIGHT5);
-	glLightfv(GL_LIGHT5, GL_AMBIENT, ambiental2);
-	glLightfv(GL_LIGHT5, GL_DIFFUSE, difusa2);
-	glLightfv(GL_LIGHT5, GL_SPECULAR, especular2);
-	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 45.0);
-	glLightf(GL_LIGHT5, GL_SPOT_EXPONENT, 10.0);
-
-
-	// Material carretera
-	GLfloat difuso[4] = { (0.8f),(0.8f),(0.8f) ,(1.0f) };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, difuso);
-	GLfloat specular[4] = { (0.3f),(0.3f),(0.3f) ,(1.0f) };
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-	glMaterialf(GL_FRONT, GL_SHININESS, 3);
-
-	// Sombreado
-	glShadeModel(GL_FLAT);
-
-}
 
 void instrucciones() {
 
@@ -482,1028 +166,12 @@ void instrucciones() {
 		<< " N/n: Activa/Desactiva efecto niebla\n C/c: Activa/Desactiva HUD\n S/s: Cambia modo Alambrico/Texturado\n 1/2: Cambia entre circuitos 1(sencillo) 2(complejo)\n\n Notas:\n Todas las funciones de visualizacion se pueden activar en conjunto salvo alambrico simple la cual desactiva temporalmente las demas\n Al cambiar de mapa se perdera el progreso en el nivel actual y se comenzara desde 0";
 }
 
-void dibuja_recta(GLfloat ancho, GLfloat largoinicio, GLfloat largofin, GLint cuadradosmetro, BOOLEAN iluminacion) {
-	//Uso de las texturas
-	glBindTexture(GL_TEXTURE_2D, textura_carretera);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// La textura se repite en abcisas
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	// La textura se repite en ordenadas
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	if (iluminacion) {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	}
-	else {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	}
-
-	//Recta con
-	GLfloat mitancho = (float)ancho / 2.0;
-	GLfloat v0[] = { -mitancho,0,largofin };
-	GLfloat v1[] = { mitancho,0,largofin };
-	GLfloat v2[] = { mitancho,0,largoinicio };
-	GLfloat v3[] = { -mitancho,0,largoinicio };
-	quadsEnCuadradosPorMetroTex(v0, v1, v2, v3, cuadradosmetro, 1, (int)largofin + abs(largoinicio));
-}
-
-//radio>=8  curvicidad 0-100
-void curva_circular(GLfloat radio, GLint curvicidad, GLint cuadradospormetro, BOOLEAN iluminacion, GLboolean angulo_comienzo = 0) {
-
-	glBindTexture(GL_TEXTURE_2D, textura_carretera);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	if (iluminacion) {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	}
-	else {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	}
-
-
-	float fuera[100][2];
-	float dentro[100][2];
-
-	for (int i = 0; i < 100; i++) {
-		fuera[i][0] = (1 * cos(i * 2 * PI / 100 + angulo_comienzo)) * radio;
-		fuera[i][1] = (1 * sin(i * 2 * PI / 100 + angulo_comienzo)) * radio;
-		dentro[i][0] = fuera[i][0] * (radio - 4) / radio;
-		dentro[i][1] = fuera[i][1] * (radio - 4) / radio;
-	}
-
-	for (int i = 0; i < curvicidad; i++) {
-		GLfloat v0[] = { fuera[i][0],0,fuera[i][1] };
-		GLfloat v1[] = { dentro[i][0],0,dentro[i][1] };
-		GLfloat v2[] = { dentro[i + 1][0],0, dentro[i + 1][1] };
-		GLfloat v3[] = { fuera[i + 1][0],0,fuera[i + 1][1] };
-		quadsEnCuadradosPorMetroTex(v0, v1, v2, v3, cuadradospormetro, 1, 1);
-	}
-}
-
-void circuitoNivel1(GLint cuadradospormetro, BOOLEAN iluminacion) {
-
-	dibuja_meta(0, 2);
-	//recta inicio
-	dibuja_recta(4, -10, 30, cuadradospormetro, iluminacion);
-	//recta paralela
-	glPushMatrix();
-	glTranslatef(40, 0, 0);
-	dibuja_recta(4, -10, 30, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//recta entre curvas
-	glPushMatrix();
-	glTranslatef(6, 0, 36);
-	glRotatef(90, 0, 1, 0);
-	dibuja_recta(4, 0, 28, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//primera curva
-	glPushMatrix();
-	glTranslatef(6, 0, 30);
-	glRotatef(-90, 0, 1, 0);
-	//glCallList(cuarto_curva);
-	curva_circular(8, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//segunda curva
-	glPushMatrix();
-	glTranslatef(34, 0, 30);
-	glRotatef(0, 0, 1, 0);
-	curva_circular(8, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	// grande curva
-	glPushMatrix();
-	glTranslatef(20, 0, -10);
-	glRotatef(180, 0, 1, 0);
-	curva_circular(22, 50, cuadradospormetro, iluminacion);
-	glPopMatrix();
-}
-
-/*Este circuito no lo termine*/
-void circuitoYoshi(GLint cuadradospormetro, BOOLEAN iluminacion) {
-	dibuja_meta(0, 2);
-	//recta inicio
-	dibuja_recta(4, -10, 30, cuadradospormetro, iluminacion);
-
-	//primera curva
-	glPushMatrix();
-	glTranslatef(10, 0, 30);
-	glRotatef(0, 0, 1, 0);
-	glNormal3f(0.0, 1.0, 0.0);
-	curva_circular(12, 35, cuadradospormetro, iluminacion, PI / 2);
-	glPopMatrix();
-
-
-	//segunda recta
-	glPushMatrix();
-	glTranslatef(15.4, 0, 38.42);
-	glRotatef(122.5, 0, 1, 0);
-	dibuja_recta(4, 0, 15, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//segunda curva de 90grados
-	glPushMatrix();
-	glTranslatef(31.26, 0, 35.42);
-	glRotatef(122.5, 0, 1, 0);
-	curva_circular(8, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//segunda recta
-	glPushMatrix();
-	glTranslatef(36.31, 0, 32.2);
-	glRotatef(122.5 - 90, 0, 1, 0);
-	dibuja_recta(4, 0, 30, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//primera curva grande
-	glPushMatrix();
-
-	glTranslatef(52.435 + 18.0 * 0.8433, 0, 57.48 - 18 * 0.537);
-	glRotatef(32.5, 0, 1, 0);;
-	curva_circular(20, 50, cuadradospormetro, iluminacion, 0);
-	glPopMatrix();
-
-	//tercera recta
-	glPushMatrix();
-	glTranslatef(82.7938, 0, 38.148);
-	glRotatef(122.5 - 270, 0, 1, 0);
-	dibuja_recta(4, 0, 30, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//tercera curva de 90grados
-	glPushMatrix();
-	glTranslatef(66.67, 0, 13.11);
-	glRotatef(122.5, 0, 1, 0);
-	curva_circular(12, 35, cuadradospormetro, iluminacion, PI / 2);
-	glPopMatrix();
-}
-
-void circuitoNivel2(GLint cuadradospormetro, BOOLEAN iluminacion) {
-	dibuja_meta(0, 2);
-	//recta inicio
-	dibuja_recta(4, -30, 40, cuadradospormetro, iluminacion);
-
-	//primera curva
-	glPushMatrix();
-	glTranslatef(24, 0, 40);
-	glRotatef(-90, 0, 1, 0);
-	glNormal3f(0.0, 1.0, 0.0);
-	curva_circular(26, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//segunda recta
-	glPushMatrix();
-	glTranslatef(24, 0, 64);
-	glRotatef(90, 0, 1, 0);
-	dibuja_recta(4, 0, 15, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//segunda curva
-	glPushMatrix();
-	glTranslatef(39, 0, 54);
-	glRotatef(0, 0, 1, 0);
-	curva_circular(12, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//tercera curva
-	glPushMatrix();
-	glTranslatef(59, 0, 54);
-	glRotatef(180, 0, 1, 0);
-	curva_circular(12, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//cuarta curva
-	glPushMatrix();
-	glTranslatef(59, 0, 22);
-	glRotatef(0, 0, 1, 0);
-	curva_circular(24, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//tercera recta
-	glPushMatrix();
-	glTranslatef(81, 0, 22);
-	glRotatef(180, 0, 1, 0);
-	dibuja_recta(4, 0, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//quinta curva
-	glPushMatrix();
-	glTranslatef(53, 0, -3);
-	glRotatef(270, 0, 1, 0);
-	curva_circular(30, 75, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//sexta curva
-	glPushMatrix();
-	glTranslatef(53, 0, 31);
-	glRotatef(90, 0, 1, 0);
-	curva_circular(8, 50, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//cuarta recta
-	glPushMatrix();
-	glTranslatef(53, 0, 37);
-	glRotatef(-90, 0, 1, 0);
-	dibuja_recta(4, 0, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//sexta curva
-	glPushMatrix();
-	glTranslatef(28, 0, 23);
-	glRotatef(-90, 0, 1, 0);
-	curva_circular(16, 25, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-	//quinta recta
-	glPushMatrix();
-	glTranslatef(14, 0, 23);
-	glRotatef(180, 0, 1, 0);
-	dibuja_recta(4, 0, 53, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-	//ultima curva
-	glPushMatrix();
-	glTranslatef(7, 0, -30);
-	glRotatef(180, 0, 1, 0);
-	curva_circular(9, 50, cuadradospormetro, iluminacion);
-	glPopMatrix();
-
-
-}
-
-
-void minimapanivel1() {
-	//Minimapa
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
-	glPushMatrix();
-	glRotatef(90, 1, 0, 0);
-	glRotatef(0, 0, 1, 0);
-	glTranslatef(0.6, 0, -0.6);
-
-	glScalef(0.007, 0.007, 0.007);
-
-	glCallList(circuitomini1);
-	glPopMatrix();
-	glPushMatrix();
-	glEnable(GL_TEXTURE_2D);
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glTranslatef(0.585, 0.6, 0);
-	glBindTexture(GL_TEXTURE_2D, textura_start);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	GLfloat v0[] = { 0,0.03,0 };
-	GLfloat v1[] = { 0.03,0.03,0 };
-	GLfloat v2[] = { 0.03,0,0 };
-	GLfloat v3[] = { 0,0,0 };
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 10, 10);
-	glTranslatef(0.015, 0, 0);
-
-	glTranslatef(desplazamientox*0.007 + 0.01*focoz, -desplazamientoz*0.007 + 0.01*focox, 0);
-	glRotatef(direccionVelocidad*aumentovelocidadgiro + 90, 0, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, textura_coche);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 10, 10);
-
-	glPopAttrib();
-	glPopMatrix();
-	if (diurnoNocturno) {
-		glEnable(GL_LIGHTING);
-	}
-}
 
 void init()
 // Funcion propia de inicializacion
 {
-	std::ifstream infile(saveFolder+"test.txt");
-	cargarCircuitoFromFile(infile);
-
-	if (test) {
-		glClearColor(1.0, 1.0, 1.0, 1.0);
-		glEnable(GL_DEPTH_TEST);
-		glutSetWindowTitle("MODO TEST");
-
-		//inicializamos la camara con los valores por defecto.
-		camaraflotante = Camera();
-
-
-		iluminacion();
-
-		//Texturas
-		init_de_Textura(textura_carretera, "./textures/carretera.jpg");
-		init_de_Textura(textura_fondo, "./textures/fondo.jpg");
-		init_de_Textura(textura_nukacola, "./textures/nukacola.jpg");
-		init_de_Textura(textura_metal, "./textures/metal.jpg");
-		init_de_Textura(textura_slurm, "./textures/slurm.jpg");
-		init_de_Textura(textura_sonic, "./textures/sonic.jpg");
-		init_de_Textura(textura_hierba, "./textures/hierba.jpg");
-		init_de_Textura(textura_panel_trasero, "./textures/paneltrasero.jpg");
-		init_de_Textura(textura_cielonoche, "./textures/cielonoche.jpg");
-		init_de_Textura(textura_cielodia, "./textures/cielodia.jpg");
-		init_de_Textura(textura_victoria, "./textures/victory.PNG");
-		init_de_Textura(textura_velocimetro, "./textures/velocimetro.PNG");
-		init_de_Textura(textura_aguja, "./textures/aguja.jpg");
-		init_de_Textura(textura_bandera1, "./textures/bandera1.PNG");
-		init_de_Textura(textura_bandera2, "./textures/bandera2.PNG");
-		init_de_Textura(textura_bandera3, "./textures/bandera3.PNG");
-		init_de_Textura(textura_goal, "./textures/goal.PNG");
-		init_de_Textura(textura_start, "./textures/start.PNG");
-		init_de_Textura(textura_coche, "./textures/coche.PNG");
-
-
-	}
-	else {
-
-
-		//cout << "Version: OpenGL " << glGetString(GL_VERSION) << endl;
-		glClearColor(0, 0, 0, 1.0);
-		instrucciones();
-
-		iluminacion();
-
-		//Texturas
-		init_de_Textura(textura_carretera, "./textures/carretera.jpg");
-		init_de_Textura(textura_fondo, "./textures/fondo.jpg");
-		init_de_Textura(textura_nukacola, "./textures/nukacola.jpg");
-		init_de_Textura(textura_metal, "./textures/metal.jpg");
-		init_de_Textura(textura_slurm, "./textures/slurm.jpg");
-		init_de_Textura(textura_sonic, "./textures/sonic.jpg");
-		init_de_Textura(textura_hierba, "./textures/hierba.jpg");
-		init_de_Textura(textura_panel_trasero, "./textures/paneltrasero.jpg");
-		init_de_Textura(textura_cielonoche, "./textures/cielonoche.jpg");
-		init_de_Textura(textura_cielodia, "./textures/cielodia.jpg");
-		init_de_Textura(textura_victoria, "./textures/victory.PNG");
-		init_de_Textura(textura_velocimetro, "./textures/velocimetro.PNG");
-		init_de_Textura(textura_aguja, "./textures/aguja.jpg");
-		init_de_Textura(textura_bandera1, "./textures/bandera1.PNG");
-		init_de_Textura(textura_bandera2, "./textures/bandera2.PNG");
-		init_de_Textura(textura_bandera3, "./textures/bandera3.PNG");
-		init_de_Textura(textura_goal, "./textures/goal.PNG");
-		init_de_Textura(textura_start, "./textures/start.PNG");
-		init_de_Textura(textura_coche, "./textures/coche.PNG");
-
-
-
-
-		//Cilindro
-		cilindro = glGenLists(1);
-		glNewList(cilindro, GL_COMPILE);
-		glPushAttrib(GL_CURRENT_BIT);
-
-
-		//Uso de texturas
-		glBindTexture(GL_TEXTURE_2D, textura_fondo);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-		float punto[40][2];
-
-		for (int i = 0; i < 40; i++) {
-			punto[i][0] = 200 * cos(i * 2 * PI / 40);
-			punto[i][1] = 200 * sin(i * 2 * PI / 40);
-		}
-		glBegin(GL_QUAD_STRIP);
-		for (int i = 0; i < 40; i++) {
-
-			glTexCoord2f((float)i / 40.0 * 5, 0);
-			glVertex3f(punto[i][0], 0, punto[i][1]);
-			glTexCoord2f((float)i / 40.0 * 5, 1);
-			glVertex3f(punto[i][0], 20, punto[i][1]);
-
-		}
-		glTexCoord2f(5, 0);
-		glVertex3f(punto[0][0], 0, punto[0][1]);
-		glTexCoord2f(5, 1);
-		glVertex3f(punto[0][0], 20, punto[0][1]);
-		glEnd();
-		glPopAttrib();
-		glEndList();
-
-		//Creacion de los Anuncios
-		anuncio_nuka = glGenLists(1);
-		glNewList(anuncio_nuka, GL_COMPILE);
-		dibuja_anuncio(textura_nukacola, 0, 0);
-		glEndList();
-
-		anuncio_slurm = glGenLists(1);
-		glNewList(anuncio_slurm, GL_COMPILE);
-		dibuja_anuncio(textura_slurm, 0, 0);
-		glEndList();
-
-		anuncio_sonic = glGenLists(1);
-		glNewList(anuncio_sonic, GL_COMPILE);
-		dibuja_anuncio(textura_sonic, 0, 0);
-		glEndList();
-
-		aguja = glGenLists(1);
-		glNewList(aguja, GL_COMPILE);
-		glBindTexture(GL_TEXTURE_2D, textura_aguja);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glPushAttrib(GL_CURRENT_BIT);
-
-		glBegin(GL_TRIANGLE_STRIP);
-		glTexCoord2f(0, 0);
-		glVertex3f(-0.01, 0, 0);
-		glTexCoord2f(1, 0);
-		glVertex3f(0.01, 0, 0);
-		glTexCoord2f(-0, 1);
-		glTexCoord2f(1, 1);
-		glVertex3f(0, 0.2, 0);
-		glEnd();
-		glPopAttrib();
-		glEndList();
-
-		//Suelo y Techo(cielo)
-
-		hierba = glGenLists(1);
-		glNewList(hierba, GL_COMPILE);
-		glBindTexture(GL_TEXTURE_2D, textura_hierba);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// La textura se repite en abcisas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		// La textura se repite en ordenadas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-		glBegin(GL_QUADS);
-
-		glNormal3f(0, 1, 0);
-		glTexCoord2f(-50, -50);
-		glVertex3f(-200, -0.001, -200);
-
-		glTexCoord2f(50, -50);
-		glVertex3f(200, -0.001, -200);
-
-		glTexCoord2f(50, 50);
-		glVertex3f(200, -0.001, 200);
-
-		glTexCoord2f(-50, 50);
-		glVertex3f(-200, -0.001, 200);
-		glEnd();
-		glEndList();
-
-		cielo_dia = glGenLists(1);
-		glNewList(cielo_dia, GL_COMPILE);
-		glBindTexture(GL_TEXTURE_2D, textura_cielodia);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// La textura se repite en abcisas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		// La textura se repite en ordenadas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glBegin(GL_QUADS);
-		glNormal3f(0, 1, 0);
-		glTexCoord2f(-50, -50);
-		glVertex3f(-200, 20, -200);
-
-		glTexCoord2f(50, -50);
-		glVertex3f(200, 20, -200);
-
-		glTexCoord2f(50, 50);
-		glVertex3f(200, 20, 200);
-
-		glTexCoord2f(-50, 50);
-		glVertex3f(-200, 20, 200);
-
-		glEnd();
-		glEndList();
-
-		cielo_noche = glGenLists(1);
-		glNewList(cielo_noche, GL_COMPILE);
-		glBindTexture(GL_TEXTURE_2D, textura_cielonoche);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// La textura se repite en abcisas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		// La textura se repite en ordenadas
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glBegin(GL_QUADS);
-		glNormal3f(0, 1, 0);
-		glTexCoord2f(-50, -50);
-		glVertex3f(-200, 20, -200);
-
-		glTexCoord2f(50, -50);
-		glVertex3f(200, 20, -200);
-
-		glTexCoord2f(50, 50);
-		glVertex3f(200, 20, 200);
-
-		glTexCoord2f(-50, 50);
-		glVertex3f(-200, 20, 200);
-
-		glEnd();
-		glEndList();
-
-		circuito1 = glGenLists(1);
-		glNewList(circuito1, GL_COMPILE);
-		circuitoNivel1(20, TRUE);
-		glEndList();
-
-		circuitomini1 = glGenLists(1);
-		glNewList(circuitomini1, GL_COMPILE);
-		circuitoNivel1(1, TRUE);
-		glEndList();
-
-		circuito2 = glGenLists(1);
-		glNewList(circuito2, GL_COMPILE);
-		circuitoNivel2(10, TRUE);
-		glEndList();
-
-		circuitomini2 = glGenLists(1);
-		glNewList(circuitomini2, GL_COMPILE);
-		circuitoNivel2(1, TRUE);
-		glEndList();
-		//Enables
-		glEnable(GL_DEPTH_TEST); // Habilita visibilidad
-		glEnable(GL_NORMALIZE);
-		glEnable(GL_TEXTURE_2D);
-
-	}
-
 
 }
-
-
-void minimapanivel2() {
-	//Minimapa
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
-	glPushMatrix();
-	glRotatef(90, 1, 0, 0);
-	glRotatef(0, 0, 1, 0);
-	glTranslatef(0.5, 0, -0.6);
-
-	glScalef(0.005, 0.005, 0.005);
-
-	glCallList(circuitomini2);
-	glPopMatrix();
-	glPushMatrix();
-	glEnable(GL_TEXTURE_2D);
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glTranslatef(0.485, 0.6, 0);
-	glBindTexture(GL_TEXTURE_2D, textura_start);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	GLfloat v0[] = { 0,0.03,0 };
-	GLfloat v1[] = { 0.03,0.03,0 };
-	GLfloat v2[] = { 0.03,0,0 };
-	GLfloat v3[] = { 0,0,0 };
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 10, 10);
-
-
-	glTranslatef(0.015, 0, 0);
-	glTranslatef(desplazamientox*0.005 + 0.01*focoz, -desplazamientoz*0.005 + 0.01*focox, 0);
-	glRotatef(direccionVelocidad*aumentovelocidadgiro + 90, 0, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, textura_coche);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 10, 10);
-
-	glPopAttrib();
-	glPopMatrix();
-	if (diurnoNocturno) {
-		glEnable(GL_LIGHTING);
-	}
-
-}
-
-void hudJuego() {
-	// Habilitamos blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// Z-Buffer
-	glDepthMask(GL_FALSE);
-	// Dibujar traslucidos
-	if (nivel == 1) {
-		minimapanivel1();
-	}else{
-		minimapanivel2();
-	}
-	
-	
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	if (terminado) {
-		glBindTexture(GL_TEXTURE_2D, textura_victoria);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glBegin(GL_QUAD_STRIP);
-		glTexCoord2f(0, 0);
-		glVertex3f(-1, -1, 1);
-
-		glTexCoord2f(0, 1);
-		glVertex3f(-1, 1, 1);
-
-		glTexCoord2f(1, 0);
-		glVertex3f(1, -1, 1);
-
-		glTexCoord2f(1, 1);
-		glVertex3f(1, 1, 1);
-
-		glEnd();
-	}
-
-	glBindTexture(GL_TEXTURE_2D, textura_velocimetro);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(0.6, -1, 1);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(0.6, -0.6, 1);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(0.9, -1, 1);
-
-	glTexCoord2f(1, 1);
-	glVertex3f(0.9, -0.6, 1);
-
-	glEnd();
-
-	if (vueltas == 0) {
-		glBindTexture(GL_TEXTURE_2D, textura_bandera1);
-	}
-	else if (vueltas == 1) {
-		glBindTexture(GL_TEXTURE_2D, textura_bandera2);
-
-	}else if(vueltas >=2){
-		glBindTexture(GL_TEXTURE_2D, textura_bandera3);
-
-	}
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(1, 1);
-	glVertex3f(-0.6, 1, 1);
-
-	glTexCoord2f(1, 0);
-	glVertex3f(-0.6, 0.6, 1);
-
-	glTexCoord2f(0, 1);
-	glVertex3f(-0.9, 1, 1);
-
-	glTexCoord2f(0, 0);
-	glVertex3f(-0.9, 0.6, 1);
-
-	glEnd();
-
-	glPopAttrib();
-	glPushMatrix();
-	glTranslatef(0.75,-0.8,0);
-	glRotatef(145-rotacion_velocidad, 0, 0, 1);
-	glCallList(aguja);
-	glPopMatrix();
-
-
-
-
-	// Z-Buffer a estado normal
-	glDepthMask(GL_TRUE);
-
-
-
-
-}
-
-void dibuja_tramo_HUD(GLint identificador) {
-	// sumamos +1 ya que los arrays empiezan por 0
-	switch (identificador+1) {
-	case 1:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		Tramo(0.05, 0.15, resolucion, repeticionTex).draw();
-		break;
-	case 2:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		TramoCurvo(0.05,0.15,90, resolucion, repeticionTex).draw();
-		break;
-	case 3:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		Rampa(0.05, 0.10,0.5, resolucion, repeticionTex).draw();
-		break;
-	case 4:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		RampaCurva(0.05, 0.08, 90,10, resolucion, repeticionTex).draw();
-		break;
-	case 5:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoHorizontal(5,15,2,2,true, resolucion, repeticionTex).draw();
-		break;
-	case 6:
-		glRotatef(90, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 1, 0, 0);
-		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoVertical(5, 15, 2, 2, true, resolucion, repeticionTex).draw();
-		break;
-	case 7:
-		//glRotatef(-180, 1, 0, 0);
-		glRotatef(90, 0, 1, 0);
-		glRotatef(rotacion_pieza, 0, 1, 0);
-		Looping(0.05,0.06,0.08, resolucion, repeticionTex).draw();
-		break;
-	//TODO añadir nuevas piezas conforme las vaya haciendo
-	}
-}
-
-void añade_tramo(GLint identificador) {
-	// sumamos +1 ya que los arrays empiezan por 0
-	//TODO añadir la variables que utilizaré en los globals
-	switch (identificador+1) {
-	case 1:
-		vectorTramosEnMemoria.push_back(new Tramo(2,10, resolucion, repeticionTex) );
-		break;
-	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(2, 5, 90, resolucion, repeticionTex));
-		break;
-	case 3:
-		vectorTramosEnMemoria.push_back(new Rampa(2, 5, 1, resolucion, repeticionTex));
-		break;
-	case 4:
-		vectorTramosEnMemoria.push_back(new RampaCurva(2, 5, 90, 10, resolucion, repeticionTex));
-		break;
-	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(2, 10, 2, 1, 1, resolucion, repeticionTex));
-		break;
-	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, resolucion, repeticionTex));
-		break;
-	case 7:
-		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, resolucion, repeticionTex));
-		break;
-	}
-}
-
-void hudElementBaseSelectorPiezas() {
-	// Habilitamos blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// Z-Buffer
-	glDepthMask(GL_FALSE);
-	// Dibujar traslucidos
-
-	//la tira donde se colocaran las piezas
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		//rgb(50,205,50)
-		glColor4f(0.196,0.8, 0.196,0.7);
-		glBegin(GL_QUAD_STRIP);
-		glTexCoord2f(0, 0);
-		glVertex3f(-0.85, 0.95, 1);
-		glTexCoord2f(0, 1);
-		glVertex3f(-0.85,0.7, 1);
-		glTexCoord2f(1, 0);
-		glVertex3f(0.85, 0.95, 1);
-		glTexCoord2f(1, 1);
-		glVertex3f(0.85, 0.7, 1);
-		glEnd();
-	glPopAttrib();
-
-	//ahora se crean los cuadrados blancos que servirán para resaltar las piezas seleccionadas
-	
-	// mas a la izquierda
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//rgb(50,205,50)
-	glColor4f(1, 1, 1, 0.5);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(-0.7, 0.925, 0.9);
-	glTexCoord2f(0, 1);
-	glVertex3f(-0.7, 0.725, 0.9);
-	glTexCoord2f(1, 0);
-	glVertex3f(-0.5, 0.925, 0.9);
-	glTexCoord2f(1, 1);
-	glVertex3f(-0.5, 0.725, 0.9);
-	glEnd();
-	glPopAttrib();
-
-	//izquierda - central
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//rgb(50,205,50)
-	glColor4f(1, 1, 1, 0.5);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(-0.4, 0.925, 0.9);
-	glTexCoord2f(0, 1);
-	glVertex3f(-0.4, 0.725, 0.9);
-	glTexCoord2f(1, 0);
-	glVertex3f(-0.2, 0.925, 0.9);
-	glTexCoord2f(1, 1);
-	glVertex3f(-0.2, 0.725, 0.9);
-	glEnd();
-	glPopAttrib();
-
-	//central
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//rgb(50,205,50)
-	if (seleccionado) {
-		glColor4f(1, 1, 0, 0.8);
-	}
-	else {
-		glColor4f(1, 1, 1, 0.8);
-	}
-	
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(-0.1, 0.925, 0.9);
-	glTexCoord2f(0, 1);
-	glVertex3f(-0.1, 0.725, 0.9);
-	glTexCoord2f(1, 0);
-	glVertex3f(0.1, 0.925, 0.9);
-	glTexCoord2f(1, 1);
-	glVertex3f(0.1, 0.725, 0.9);
-	glEnd();
-	glPopAttrib();
-
-	//derecho central
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//rgb(50,205,50)
-	glColor4f(1, 1, 1, 0.5);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(0.2, 0.925, 0.9);
-	glTexCoord2f(0, 1);
-	glVertex3f(0.2, 0.725, 0.9);
-	glTexCoord2f(1, 0);
-	glVertex3f(0.4, 0.925, 0.9);
-	glTexCoord2f(1, 1);
-	glVertex3f(0.4, 0.725, 0.9);
-	glEnd();
-	glPopAttrib();
-
-	//derecho
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	//rgb(50,205,50)
-	glColor4f(1, 1, 1, 0.5);
-	glBegin(GL_QUAD_STRIP);
-	glTexCoord2f(0, 0);
-	glVertex3f(0.5, 0.925, 0.9);
-	glTexCoord2f(0, 1);
-	glVertex3f(0.5, 0.725, 0.9);
-	glTexCoord2f(1, 0);
-	glVertex3f(0.7, 0.925, 0.9);
-	glTexCoord2f(1, 1);
-	glVertex3f(0.7, 0.725, 0.9);
-	glEnd();
-	glPopAttrib();
-
-
-	// Z-Buffer a estado normal
-	glDepthMask(GL_TRUE);
-
-
-}
-
-int hudNumeroSelector(int tramoaux) {
-	
-	if (tramoaux >= totalTramos){
-		return tramoaux -totalTramos;
-	}
-	else if (tramoaux < 0) {
-		return tramoaux + totalTramos;
-	}
-	else {
-		return tramoaux;
-	}
-		
-}
-
-//TODO continuar con el selector de piezas, ver como hacer las animaciones mas automatizables y la colocacion de las piezas mas automatizables.
-void hudElementPiezasVisibles() {
-	// Habilitamos blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// Z-Buffer
-	glDepthMask(GL_FALSE);
-	
-	//derecho
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//Posible problema con la luz
-	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D); //habilitamos textura
-							 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
-
-							 //Uso de las texturas
-	glBindTexture(GL_TEXTURE_2D, textura_carretera);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-
-	//posicion izquierda central
-	glPushMatrix();
-	glTranslatef(-0.6, 0.75, 0.8);
-	//rotacion a aplicar.
-	dibuja_tramo_HUD(hudNumeroSelector(tramoactual-2));
-	glPopMatrix();
-
-
-	
-	//posicion izquierda central
-	glPushMatrix();
-	glTranslatef(-0.3, 0.75, 0.8);
-	//rotacion a aplicar.
-	dibuja_tramo_HUD(hudNumeroSelector(tramoactual-1));
-	glPopMatrix();
-
-	//posicion central
-	glPushMatrix();
-	glTranslatef(0.0, 0.75, 0.8);
-	//rotacion a aplicar.
-	dibuja_tramo_HUD(hudNumeroSelector(tramoactual));
-	glPopMatrix();
-
-	//posicion derecha central
-	glPushMatrix();
-	glTranslatef(0.3, 0.75, 0.8);
-	//rotacion a aplicar.
-	dibuja_tramo_HUD(hudNumeroSelector(tramoactual + 1) );
-	glPopMatrix();
-	
-	//posicion derecha
-	glPushMatrix();
-	glTranslatef(0.6, 0.75, 0.8);
-	//rotacion a aplicar.
-	dibuja_tramo_HUD(hudNumeroSelector(tramoactual + 2));
-	glPopMatrix();
-
-	glPopAttrib();
-	// Z-Buffer a estado normal
-	glDepthMask(GL_TRUE);
-
-}
-
-
-void hudModoCreacion() {
-	
-	
-		//HUD
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		//Preparamos camara orthografica para poder dibujar el Hud
-		glOrtho(-1, 1, -1, 1, -1.0, 1);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glDisable(GL_CULL_FACE);
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-		
-		//Nos disponemos a añadir los elementos al hud, de esta forma, podremos tener elementos añadidos de forma constante delante de la camara y crear una interfaz para el usuario.
-		hudElementBaseSelectorPiezas();
-		hudElementPiezasVisibles();
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-
-}
-
 
 
 
@@ -1624,113 +292,21 @@ void nieblaComoToca() {
 
 }
 
-void coche() {
-	
-	GLfloat v0[] = { 0, 0, 1.5 };
-	GLfloat v1[] = { 3.0, 0 ,1.5 };
-	GLfloat v2[] = { 3.0, 0 ,0 };
-	GLfloat v3[] = { 0, 0 ,0 };
-	glPushMatrix();
-	glTranslatef(desplazamientox , 1, desplazamientoz);
-	glRotatef(direccionVelocidad*aumentovelocidadgiro + 90, 0, 1, 0);
-	glBindTexture(GL_TEXTURE_2D, textura_coche);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	quadtex(v2, v3, v0, v1, 0.0, 1, 0.0, 1, 10, 10);
-	glPopMatrix();
-
-}
-
-
-void dibujarTramosEnLista() {
-
-	for (int i = 0; i < vectorTramosEnMemoria.size();i++) {
-		vectorTramosEnMemoria[i]->drawing();
-	}
-}
-
-void dibujarCircuitoEnMemoria()
-{
-
-	
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D); //habilitamos textura
-	//glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
-	 
-    //Uso de las texturas
-	glBindTexture(GL_TEXTURE_2D, textura_carretera);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	if (iluminacion) {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	}
-	else {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	}
-
-
-	glPushMatrix();
-	{
-		dibujarTramosEnLista();
-	}
-	glPopMatrix();
-	glPopAttrib();
-}
-
-
-void camera(void) {
-
-
-}
-
-
-void testeandoCircuito() {
-	// Borra buffers y selecciona modelview
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	
-	if (camaraLibre) {//camara libre usando trackball para ver el circuito desde arriba
-		camaraflotante.SetGluLookUp();
-	}
-	else {//camara normal del problema
-		GLfloat posicion1[] = { 0.0f, -0.3f, 0.0f, 1.0f };
-		glLightfv(GL_LIGHT1, GL_POSITION, posicion1);
-		gluLookAt(desplazamientox, 1, desplazamientoz,
-			mirandox, 0, mirandoz,
-			0, 1, 0); // Situa la camara
-	}
-
-	ejes();
-
-
-	glPolygonMode(GL_FRONT, GL_LINE);
 
 
 
 
-	dibujarCircuitoEnMemoria();
 
 
-}
+
+
+
+
 
 void display()
 // Funcion de atencion al dibujo
 {
 	if (test) {
-		testeandoCircuito();
-		
-		//if(modo==creacion) si estamos en modo creacion se aplicarán unas reglas
-		hudModoCreacion();
 
 
 		//else si no dibujaremos el circuito cargado, y aplicaremos las reglas de juego estandar.
@@ -1808,7 +384,7 @@ void display()
 		else {
 			GLfloat dir_central[] = { focox, -1, focoz };//que apunte directamente al coche
 			glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir_central);
-			coche();
+			//coche();
 		}
 
 
@@ -1870,7 +446,7 @@ void display()
 			glDisable(GL_CULL_FACE);
 
 			glClear(GL_DEPTH_BUFFER_BIT);
-			hudJuego();
+			//hudJuego();
 
 
 			glMatrixMode(GL_PROJECTION);
@@ -1901,27 +477,7 @@ void reshape(GLint w, GLint h)
 	gluPerspective(120, razon, 0.1, 400);
 }
 
-void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
-	switch (specialKey) {
-	case GLUT_KEY_LEFT:
-		if (!seleccionado) {
-			tramoactual= hudNumeroSelector(tramoactual-1);
-		}
-		break;
-	case GLUT_KEY_RIGHT:
-		if (!seleccionado) {
-			tramoactual = hudNumeroSelector(tramoactual+1);
-		}
-		break;
-	case GLUT_KEY_UP:
 
-		break;
-	case GLUT_KEY_DOWN:
-
-		break;
-	}
-
-}
 
 
 void onSpecialKey(int specialKey, int x, int y) {
@@ -1987,119 +543,13 @@ void reinicio(){
 //funcion pasiva de lectura del raton
 
 
-void mouseMovement(int x, int y) {
-	//Comprobar diferencia entre la 'x' de y la 'y' de la posicion actual del raton con la anterior
-	int diffx = x - lastx;
-	int diffy = y - lasty;
-	//Actualizamos la posicion anterior para poder continuar con el desplazamiento
-	lastx = x;
-	lasty = y;
-	//Actualizamos los valores de la rotacion de la camara
-	camaraflotante.ProcessMouseMovement(diffx, diffy);
-
-	/*
-	//ajustamos los valores de las rotaciones para que sean siempre valores entre 0 y 360
-	xrot += (float)diffy;
-	if (xrot >360) xrot -= 360;
-	if (xrot < -360) xrot += 360;
-
-	yrot += (float)diffx;
-	if (yrot >360) yrot -= 360;
-	if (yrot < -360)yrot += 360;
-	*/
-
-}
-
-void mouse(int button, int state, int x, int y)
-{
-	//evento de pulsar el click izquierdo
-	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_DOWN))
-	{
-		lastx = x;
-		lasty = y;
-		glutMotionFunc(mouseMovement);
-		leftclick = true;
-	}
-
-	if ((button == GLUT_LEFT_BUTTON) && (state == GLUT_UP))
-	{
-		//desactivamos la escucha
-		glutMotionFunc(NULL);
-		leftclick = false;
-	}
-
-	if ((button == GLUT_RIGHT_BUTTON) && (state == GLUT_DOWN))
-	{
-		rightclick = true;
-	}
-
-	if ((button == GLUT_RIGHT_BUTTON) && (state == GLUT_UP))
-	{
-		rightclick = false;
-	}
-}
 
 
 
 
 
 
-void onKeyCreacion(unsigned char tecla, int x, int y)
-// Funcion de atencion al teclado
-{
-	//float xrotrad, yrotrad;
-	switch (tecla) {
-	case 'W':
-	case 'w':
-			camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
-			break;
 
-	case 'S':
-	case 's':
-			camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
-			break;
-
-	case 'D':
-	case 'd':
-			camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
-			break;
-	case 'A':
-	case 'a':
-			camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
-			break;
-	case 13:
-		
-		
-			if (seleccionado)
-			{
-				//si ya se habia seleccionado una pieza la dibujamos
-				añade_tramo(tramoactual);
-			}
-			else
-			{
-				// si no, simplemente marcamos la pieza como seleccionada
-			}
-			seleccionado = !seleccionado;
-		break;
-	case 8: //se pulsa retroceso.
-		if (seleccionado) // si una pieza esta seleccionada la deseleccionamos
-			seleccionado = !seleccionado;
-		else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
-			if (!vectorTramosEnMemoria.empty()) {
-				vectorTramosEnMemoria.pop_back();
-			}
-		}
-		break;
-	case 27: // Pulso escape
-		//TODO AÑADIR MENU
-		guardarCircuitoToFile();
-		exit(0);
-	}
-	stringstream titulo;
-	titulo << "Circuito final: " << moduloVelocidad << " m/s";
-	glutSetWindowTitle(titulo.str().c_str()); // Pone el titulo
-							
-}
 
 void onIdle()
 // Funcion de atencion al evento idle
@@ -2156,8 +606,65 @@ void onIdle()
 
 
 void testo() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);//borramos buffers
 	engine.Draw();
 	glutSwapBuffers(); // Intercambia los buffers
+}
+
+void setResolucion(int v) {
+
+	switch (v)
+	{
+	case 1: //low settings
+		resolucion = 10;
+		repeticionTex = 1;
+		break;
+	case 2: //medium settings
+		resolucion = 20;
+		repeticionTex = 1;
+		break;
+	case 3:
+		resolucion = 30;
+		repeticionTex = 1;
+		break;
+	default:
+		break;
+	}
+
+}
+
+void setFullScreen(int f) {
+	switch (f)
+	{
+	case 0: //low settings
+		fullscreen = false;
+		break;
+	case 1: //medium settings
+		fullscreen = true;
+		break;
+
+	default:
+		break;
+	}
+}
+
+void cargarOpciones() {
+	std::ifstream i(saveFolder+"options/options.txt");
+
+	if (!i.fail()) {
+		auto line = std::string{};
+		int a = 0;
+		while (std::getline(i, line)) {
+			auto pos = line.find_first_of(';');
+			string variable = line.substr(0, pos);
+			if (a == 0) {
+				setResolucion(stoi(variable));
+			}
+			if (a == 1) {
+				setFullScreen(stoi(variable));
+			}
+		}
+	}
 }
 
 void main(int argc, char** argv)
@@ -2167,18 +674,17 @@ void main(int argc, char** argv)
 	glutInit(&argc, argv); // Inicializacion de GLUT
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Alta de buffers a usar
 	//Todo cambiarlo para que vaya por opciones
-	
+	cargarOpciones();
 	//glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
 	//glutCreateWindow("Creador Circuitos");	// Pone el titulo para que se vaya actualizando luego en onkey
 	//glutDisplayFunc(display); // Alta de la funcion de atencion a display
 	engine.Init("test");
 	
-	MainMenuState* a = MainMenuState::Instance();
-	engine.ChangeState(a);
+	engine.ChangeState(MainMenuState::Instance());
 	glutDisplayFunc(testo);
 
 	glutReshapeFunc(reshape); // Alta de la funcion de atencion a reshape
-	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
+	
 	//glutPassiveMotionFunc(mouseMovement); //Funcion de atencion al raton pasiva siempre a la escucha
 	//glutKeyboardFunc(onKeyCreacion); // Alta de la funcion de atencion al teclado
 	//glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial

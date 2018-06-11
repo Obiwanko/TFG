@@ -7,18 +7,18 @@
 class State
 {
 public:
-	virtual void Init() = 0;
+	virtual void Init(StateEngine* engine) = 0;
 	virtual void Cleanup() = 0;
 
 	virtual void Pause() = 0;
 	virtual void Resume() = 0;
 
-	virtual void HandleEvents() = 0;
-	virtual void Update() = 0;
-	virtual void Draw() = 0;
+	virtual void HandleEvents(StateEngine* engine) = 0;
+	virtual void Update(StateEngine* engine) = 0;
+	virtual void Draw(StateEngine* engine) = 0;
 
-	void ChangeState(StateEngine* game, State* state) {
-		game->ChangeState(state);
+	void ChangeState(StateEngine* engine, State* state) {
+		engine->ChangeState(state);
 	}
 
 protected:

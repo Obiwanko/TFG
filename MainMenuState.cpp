@@ -1,15 +1,21 @@
 #include "StateEngine.h"
 #include "State.h"
 #include "MainMenuState.h"
+#include "CreationModeState.h"
 #include <Utilidades.h> // Biblioteca de Utilidades
+#include "Globals.h"
+#include <ctime>
+#include <string>
 
 MainMenuState MainMenuState::_MainMenuState;
 //Identificadores texturas
 GLuint textura_fondoMainMenu;
 GLuint textura_BotonSeleccionado;
 GLuint textura_BotonSinSeleccionar;
-
+GLuint textura_Titulo;
+StateEngine* engineMenu;
 GLint Button=0;
+string fileMap ="";
 
 	/*
 	Sencillo metodod para seguir la logica de la actualizacion del menu.
@@ -50,19 +56,28 @@ GLint Button=0;
 	void onKeyMainMenu(unsigned char tecla, int x, int y)
 		// Funcion de atencion al teclado
 	{
+		std::time_t t = std::time(0);
+		std::tm* now = std::localtime(&t);
+		int dia = (now->tm_mday);
+		int mes = (now->tm_mon + 1);
+		int año = (now->tm_year + 1900);
+		int seg = (now->tm_sec);
+		int min = (now->tm_min);
+		int hora = (now->tm_hour);
 		//float xrotrad, yrotrad;
 		switch (tecla) {
-
 		case 13://se pulsa enter
-
 			switch (Button)
 			{
-
 			case 0: //entramos al creador
+				fileMap = saveFolder+"Circuito_" +to_string(hora)+ to_string(min) + to_string(seg)+ to_string(dia) + to_string(mes) + to_string(año) + ".txt";
+				engineMenu->ChangeState(CreationModeState::Instance());
 				break;
 			case 1: //entramos a seleccionar mapa
+					//engineMenu->ChangeState();
 				break;
 			case 2: // entramos a las opciones
+					//engineMenu->ChangeState();
 				break;
 			case 3: //salimos
 				exit(0);
@@ -70,10 +85,8 @@ GLint Button=0;
 			default:
 				break;
 			}
-
 			break;
 		case 8: //se pulsa retroceso.
-
 			break;
 		case 27: // Pulso escape
 			exit(0);
@@ -81,17 +94,20 @@ GLint Button=0;
 	}
 
 
-	void MainMenuState::Init() {
+	void MainMenuState::Init(StateEngine* engine) {
 		init_de_TexturaMainMenu(textura_BotonSeleccionado, "./textures/MainMenu/ButtonSelected.jpg");
 		init_de_TexturaMainMenu(textura_fondoMainMenu, "./textures/MainMenu/Background.jpg");
 		init_de_TexturaMainMenu(textura_BotonSinSeleccionar, "./textures/MainMenu/ButtonNotSelected.jpg");
+		init_de_TexturaMainMenu(textura_Titulo, "./textures/MainMenu/titulo.png");
+		engineMenu = engine;
 		glutSpecialFunc(onSpecialKeyMainMenu);// Alta de la funcion de atencion al teclado especial
 		glutKeyboardFunc(onKeyMainMenu);// Alta de la funcion de atencion al teclado 
 	}
 
 	//Limpiar texturas etc
 	void MainMenuState::Cleanup() {
-
+		glutSpecialFunc(NULL);
+		glutKeyboardFunc(NULL);
 	}
 
 
@@ -104,12 +120,12 @@ GLint Button=0;
 	}
 
 
-	void MainMenuState::HandleEvents() {
+	void MainMenuState::HandleEvents(StateEngine* game) {
 
 	}
 
 
-	void MainMenuState::Update() {
+	void MainMenuState::Update(StateEngine* game) {
 
 	}
 
@@ -129,12 +145,27 @@ GLint Button=0;
 		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 			0, 1, 0, 1, 1, 1);
 
-
-
-
 	}
 	
-	
+
+	void titulo() {
+
+		//Uso de las texturas
+		glBindTexture(GL_TEXTURE_2D, textura_Titulo);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		GLfloat v0[3] = { -0.35,0.2,0.0 };
+		GLfloat v1[3] = { 0.35,0.2,0.0 };
+		GLfloat v3[3] = { -0.35,0.9,0.0 };
+		GLfloat v2[3] = { 0.35,0.9,0.0 };
+
+		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+			0, 1, 0, 1, 1, 1);
+
+	}
+
 
 
 
@@ -218,9 +249,10 @@ GLint Button=0;
 	}
 
 	//TODO completar esta mision
-	void MainMenuState::Draw() {
+	void MainMenuState::Draw(StateEngine* game) {
 
-			
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glPushMatrix();
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
@@ -246,6 +278,7 @@ GLint Button=0;
 
 		background();
 		botones();
+		titulo();
 		
 		glPopAttrib();
 		// Z-Buffer a estado normal
@@ -256,6 +289,8 @@ GLint Button=0;
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 
+		glPopMatrix();
+		glPopAttrib();
 	}
 
 

@@ -1,11 +1,10 @@
-
-#ifndef MAINMENUSTATE_H
-#define MAINMENUSTATE_H
+#ifndef CREATIONMODESTATE_H
+#define CREATIONMODESTATE_H
 
 #include "State.h"
 
 
-class MainMenuState : public State
+class CreationModeState : public State
 {
 public:
 	void Init(StateEngine* game);
@@ -17,21 +16,21 @@ public:
 	void HandleEvents(StateEngine* game);
 	void Update(StateEngine* game);
 	void Draw(StateEngine* game);
-	
+
 	void ChangeState(StateEngine* game, State* state) {
 		game->ChangeState(state);
 	}
 
 
-	static MainMenuState* Instance() {
-		return &_MainMenuState;
+	static CreationModeState* Instance() {
+		return &_CreationModeState;
 	};
 
 protected:
-	MainMenuState() { }
+	CreationModeState() { }
 
 private:
-	static MainMenuState _MainMenuState;
+	static CreationModeState _CreationModeState;
 };
 
 #endif
