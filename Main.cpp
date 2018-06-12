@@ -82,6 +82,8 @@ StateEngine engine;
 //vector donde se guardaran las piezas colocadas
 std::vector<Tramo*> vectorTramosEnMemoria;
 
+//Declaracion variable de la posicion del ultimo tramo.
+Point3D posicionUltimoTramo = Point3D(0,0,0);
 
 
 /*

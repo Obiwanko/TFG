@@ -55,6 +55,7 @@ protected:
 	int _texX;								// nº rep textura
 	float _ancho, _longitud;				// ancho y longitud del tramo
 	const int _id = 1;
+	Point3D _posicionUltimoTramo;
 public:
 	//valores por defecto
 
@@ -91,10 +92,17 @@ public:
 
 		glTranslatef( _longitud, 0, 0 );
 
+		//actualizamos la variable posicion global
+		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
+
+
 	};
+
 
 	virtual void drawing() {
 		draw();
+		//actualizamos la variable posicion global
+
 	}
 
 	/*
@@ -167,6 +175,13 @@ public:
 		glTranslatef( 0, 0, -signo(_angulo) * radio );
 		glRotatef( _angulo, 0,1,0 );
 		glTranslatef( 0, 0, signo(_angulo) * radio );
+
+		//aplicamos los mismos cambios en nuestro vector de posicion
+		//posicionUltimoTramo.z +=  -signo(_angulo) * radio;
+		//posicionUltimoTramo.x = (posicionUltimoTramo.x*cos(_angulo)) + (sin(_angulo)*posicionUltimoTramo.z);
+		//posicionUltimoTramo.z = (posicionUltimoTramo.x*-sin(_angulo)) + (cos(_angulo)*posicionUltimoTramo.z);
+		//posicionUltimoTramo.z += signo(_angulo) * radio;
+
 	};
 
 	virtual void drawing() {
@@ -223,7 +238,8 @@ public:
 		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3, 0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
 
 		glTranslatef(_longitud, _longitud*_pendiente, 0);
-
+		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
+		//posicionUltimoTramo.y = posicionUltimoTramo.y + _longitud * _pendiente;
 	};
 
 	virtual void drawing() {
@@ -310,6 +326,14 @@ public:
 		glTranslatef(0, 0, -signo(_angulo) * radio);
 		glRotatef(_angulo, 0, 1, 0);
 		glTranslatef(0, _longitud*_pendiente, signo(_angulo) * radio);
+
+		//aplicamos los cambios al vector de posicion
+		//posicionUltimoTramo.z += -signo(_angulo) * radio;
+		//posicionUltimoTramo.x = (posicionUltimoTramo.x*cos(_angulo)) + (sin(_angulo)*posicionUltimoTramo.z);
+		//posicionUltimoTramo.z = (posicionUltimoTramo.x*-sin(_angulo)) + (cos(_angulo)*posicionUltimoTramo.z);
+		//posicionUltimoTramo.z += signo(_angulo) * radio;
+		//posicionUltimoTramo.y += _longitud * _pendiente;
+
 	};
 
 	virtual void drawing() {
@@ -398,7 +422,7 @@ public:
 		}
 
 		glTranslatef(_longitud, 0, 0);
-
+		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 	};
 
 	virtual void drawing() {
@@ -487,7 +511,7 @@ public:
 		}
 
 		glTranslatef(_longitud, 0, 0);
-
+		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 	};
 
 	virtual void drawing() {
@@ -562,6 +586,7 @@ public:
 		}
 
 		glTranslatef(0, 0, _separacion);
+		//posicionUltimoTramo.z = posicionUltimoTramo.z + _separacion;
 	};
 
 	virtual void drawing() {

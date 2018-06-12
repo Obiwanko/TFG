@@ -69,4 +69,8 @@ extern GLint const totalTramos;
 
 //Vector de Tramos cargados actualmente en memoria
 extern std::vector<Tramo*> vectorTramosEnMemoria;
+
+//Variables de la posicion actual donde se colocará el ultimo tramo.
+//extern Point3D posicionUltimoTramo;
+
 #endif

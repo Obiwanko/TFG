@@ -250,7 +250,6 @@ void cargarCircuitoFromFile() {
 void guardarCircuitoToFile() {
 	//TODO hacer que el fichero se introduzca por pantalla.
 	std::ofstream file(fileMap);
-	cout << "guardo ";
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
 		vectorTramosEnMemoria[i]->writeToFile(file);
 	}
@@ -368,8 +367,6 @@ void añade_tramo(GLint identificador) {
 void onKeyCreacion(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
-	cout << tecla << " " << resolucion << "\n";
-	
 	//float xrotrad, yrotrad;
 	switch (tecla) {
 	case 'W':
@@ -389,6 +386,10 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 	case 'A':
 	case 'a':
 		camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
+		break;
+	case ' ':
+		//enfocamos a la ultima pieza colocada
+		//camaraflotante.LookLastPiece(posicionUltimoTramo.x, posicionUltimoTramo.y+10, posicionUltimoTramo.z);
 		break;
 	case 13:
 		if (seleccionado)
@@ -420,7 +421,6 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 
 
 void CreationModeState::Init(StateEngine* engine) {
-	cout << fileMap;
 	cargarCircuitoFromFile();
 
 	engineCreation = engine;
@@ -815,7 +815,7 @@ void dibujoCircuito() {
 //TODO completar esta mision
 void CreationModeState::Draw(StateEngine* game) {
 	
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
 	glPushMatrix();
 	
 	glMatrixMode(GL_MODELVIEW);
@@ -825,8 +825,7 @@ void CreationModeState::Draw(StateEngine* game) {
 	//if(modo==creacion) si estamos en modo creacion se aplicarán unas reglas
 	hudModoCreacion();
 	
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glPushMatrix();
+	glPopMatrix();
 
 
 }

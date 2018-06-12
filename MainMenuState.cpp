@@ -2,6 +2,7 @@
 #include "State.h"
 #include "MainMenuState.h"
 #include "CreationModeState.h"
+#include "MapSelectorState.h"
 #include <Utilidades.h> // Biblioteca de Utilidades
 #include "Globals.h"
 #include <ctime>
@@ -74,7 +75,7 @@ string fileMap ="";
 				engineMenu->ChangeState(CreationModeState::Instance());
 				break;
 			case 1: //entramos a seleccionar mapa
-					//engineMenu->ChangeState();
+					engineMenu->PushState(MapSelectorState::Instance());
 				break;
 			case 2: // entramos a las opciones
 					//engineMenu->ChangeState();
@@ -112,7 +113,10 @@ string fileMap ="";
 
 
 	void MainMenuState::Resume() {
+		//se vuelven a dar de alta las funciones de escucha
 
+		glutSpecialFunc(onSpecialKeyMainMenu);// Alta de la funcion de atencion al teclado especial
+		glutKeyboardFunc(onKeyMainMenu);// Alta de la funcion de atencion al teclado 
 	}
 
 	void MainMenuState::Pause() {

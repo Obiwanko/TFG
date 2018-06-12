@@ -61,6 +61,7 @@ void StateEngine::PopState()
 	if (!states.empty()) {
 		states.back()->Resume();
 	}
+
 }
 
 void StateEngine::HandleEvents()
