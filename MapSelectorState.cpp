@@ -19,22 +19,40 @@ GLuint textura_Flecha;
 std::vector<string> nombresFicheros;
 
 StateEngine* engineSelector;
+/*
+Variables para el dibujo de la lista de ficheros
+*/
 GLint SelectedMap = 0;
+GLint Pagina = 0;
 
 /*
 Sencillo metodod para seguir la logica de la actualizacion del menu.
 */
 GLint actualizarSelectedMap(GLint button) {
 	if (button<0) {
-		button = nombresFicheros.size()-1;
+	
+		if (Pagina != 0) {
+			Pagina -= 1;
+			button = 7;
+		}
+		else {
+			button = (nombresFicheros.size() % 8) - 1;
+			Pagina = (int)nombresFicheros.size() / 8;
+		}
 	}
-	else if (button == nombresFicheros.size()) {
+	else if (button==8) {
 		button = 0;
+		Pagina += 1;
+	}
+	else if (button+(Pagina*8) == nombresFicheros.size()) {
+		button = 0;
+		Pagina = 0;
 	}
 	return button;
 }
 
 void onSpecialKeySelector(int specialKey, int x, int y) {
+	
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
 		break;
@@ -42,12 +60,13 @@ void onSpecialKeySelector(int specialKey, int x, int y) {
 		break;
 	case GLUT_KEY_UP:
 		SelectedMap = actualizarSelectedMap(SelectedMap - 1);
+
 		break;
 	case GLUT_KEY_DOWN:
 		SelectedMap = actualizarSelectedMap(SelectedMap + 1);
 		break;
 	}
-
+	cout << SelectedMap << "\n";
 }
 
 void init_de_TexturaSelector(GLuint &id, char* nombre)
@@ -62,7 +81,7 @@ void onKeyMainSelector(unsigned char tecla, int x, int y)
 {
 	switch (tecla) {
 	case 13://se pulsa enter
-		fileMap = saveFolder + nombresFicheros[SelectedMap];
+		fileMap = saveFolder + nombresFicheros[SelectedMap+(Pagina*8)];
 		engineSelector->ChangeState(CreationModeState::Instance());
 		break;
 	case 8: //se pulsa retroceso.
@@ -174,10 +193,10 @@ void flechas() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.6,-0.3,0.0 };
-	GLfloat v1[3] = { -0.4,-0.3,0.0 };
-	GLfloat v3[3] = { -0.6,-0.5,0.0 };
-	GLfloat v2[3] = { -0.4,-0.5,0.0 };
+	GLfloat v0[3] = { -0.6,0.8,0.0 };
+	GLfloat v1[3] = { -0.4,0.8,0.0 };
+	GLfloat v3[3] = { -0.6,0.6,0.0 };
+	GLfloat v2[3] = { -0.4,0.6,0.0 };
 
 	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 		0, 1, 0, 1, 1, 1);
@@ -185,12 +204,13 @@ void flechas() {
 
 	glPushMatrix();
 
-	glTranslatef(-1.0, -1, 0);
+	glTranslatef(-1.0, 0, 0);
 	glRotatef(180, 0, 0, 1);
 	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 		0, 1, 0, 1, 1, 1);
 	glPopMatrix();
 
+	
 	glPopAttrib();
 
 }
@@ -200,6 +220,22 @@ TODO dibujar la lista de mapas cargados, dibujando 8 mapas a la vez y una vez ll
 */
 void mapasCargados() {
 
+	if (nombresFicheros.size() == 0) {
+		textoStroke(-0.39, 0 , 0.1, "No hay ningun mapa guardado", 0.06, 0.06, 0.05, ROJO, GLUT_STROKE_ROMAN);
+	}
+	else {
+
+		for (int i = Pagina*8; i < nombresFicheros.size() && i<(Pagina+1)*8; i++) {
+			string str = nombresFicheros[i].c_str();
+			std::vector<char> nombre(str.begin(), str.end());
+			nombre.push_back('\0');
+			if(i == SelectedMap+Pagina*8)
+			textoStroke(-0.38, 0.65-(0.17*(i-Pagina*8)), 0.1,&nombre[0], 0.06, 0.06, 0.06, AMARILLO, GLUT_STROKE_ROMAN);
+			else
+			textoStroke(-0.38, 0.65 - (0.17*(i - Pagina * 8)), 0.1, &nombre[0], 0.06, 0.06, 0.06, BLANCO, GLUT_STROKE_ROMAN);
+		}
+	}
+	
 }
 
 
@@ -234,6 +270,7 @@ void MapSelectorState::Draw(StateEngine* game) {
 	backgroundSelector();
 	Soporte();
 	flechas();
+	mapasCargados();
 
 	glPopAttrib();
 	// Z-Buffer a estado normal

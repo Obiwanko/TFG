@@ -197,7 +197,7 @@ void ejes()
 	glDeleteLists(id, 1);
 }
 
-void texto(unsigned int x, unsigned int y, char *text, const GLfloat *color, void *font, bool WCS)
+void texto(GLfloat x, GLfloat y, char *text, const GLfloat *color, void *font, bool WCS)
 {
 	glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
 	glDisable(GL_LIGHTING);
@@ -209,7 +209,7 @@ void texto(unsigned int x, unsigned int y, char *text, const GLfloat *color, voi
 	if (!WCS) {
 		int viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
-
+		cout << "viewport " << viewport[0] << "," << viewport[1] << "," << viewport[2] << "," << viewport[3] << "\n";
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 		glLoadIdentity();
@@ -219,7 +219,7 @@ void texto(unsigned int x, unsigned int y, char *text, const GLfloat *color, voi
 		glPushMatrix();
 		glLoadIdentity();
 
-		glRasterPos2i(x, y);
+		glRasterPos2f(x, y);
 
 		while (*text)
 		{
@@ -231,7 +231,7 @@ void texto(unsigned int x, unsigned int y, char *text, const GLfloat *color, voi
 		glMatrixMode(GL_MODELVIEW);
 	}
 	else {
-		glRasterPos2i(x, y);
+		glRasterPos2f(x, y);
 		while (*text)
 		{
 			glutBitmapCharacter(font, *text++);
@@ -239,6 +239,28 @@ void texto(unsigned int x, unsigned int y, char *text, const GLfloat *color, voi
 	}
 
 	glPopAttrib();
+}
+
+
+void textoStroke(GLfloat x, GLfloat y, GLfloat z, char * text, GLfloat scaleX, GLfloat scaleY, GLfloat scaleZ, const GLfloat *color, void *font) {
+	
+	glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	glColor3fv(color);
+	//reduccion de la escala teniendo en cuenta los tamaños estandar de las letras
+	glScalef(1 / 152.38, 1 / 152.38, 1 / 152.38);
+	//reduccion de escala para que quede un texto visible en el viewport orthogolnal standar de -1 a 1
+	glScalef(scaleX, scaleY, scaleZ);
+	glutStrokeString(GLUT_STROKE_ROMAN, (unsigned char*)text);
+
+	glPopMatrix();
+	glPopAttrib();
+
 }
 
 void loadImageFile(char* nombre)

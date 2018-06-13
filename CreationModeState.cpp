@@ -822,7 +822,6 @@ void CreationModeState::Draw(StateEngine* game) {
 	glLoadIdentity();
 	camaraflotante.SetGluLookUp();
 	dibujoCircuito();
-	//if(modo==creacion) si estamos en modo creacion se aplicarán unas reglas
 	hudModoCreacion();
 	
 	glPopMatrix();

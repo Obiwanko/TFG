@@ -190,7 +190,8 @@ string fileMap ="";
 		GLfloat v1[3] = { 0.6,0.2,0.0 };
 		GLfloat v3[3] = { -0.6,0.0,0.0 };
 		GLfloat v2[3] = { 0.6,0.0,0.0 };
-
+		
+		
 		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 			0, 1, 0, 1, 1, 1);
 
@@ -252,6 +253,30 @@ string fileMap ="";
 
 	}
 
+
+	void textosBotones() {
+		if(Button==0)
+		textoStroke(-0.27, 0.07, 0.2, "Nuevo Circuito", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+		else
+		textoStroke(-0.27, 0.07, 0.2, "Nuevo Circuito", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+		if (Button == 1)
+			textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+		else
+			textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+		if (Button == 2)
+			textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+		else
+			textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+		if (Button == 3)
+			textoStroke(-0.1, -0.83, 0.2, "Salir", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+		else
+			textoStroke(-0.1, -0.83, 0.2, "Salir", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+	}
+
 	//TODO completar esta mision
 	void MainMenuState::Draw(StateEngine* game) {
 
@@ -283,7 +308,8 @@ string fileMap ="";
 		background();
 		botones();
 		titulo();
-		
+		textosBotones();
+
 		glPopAttrib();
 		// Z-Buffer a estado normal
 		glDepthMask(GL_TRUE);
