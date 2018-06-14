@@ -2,6 +2,7 @@
 #include "State.h"
 #include "MainMenuState.h"
 #include "CreationModeState.h"
+#include "OptionsMenuState.h"
 #include "MapSelectorState.h"
 #include <Utilidades.h> // Biblioteca de Utilidades
 #include "Globals.h"
@@ -78,7 +79,7 @@ string fileMap ="";
 					engineMenu->PushState(MapSelectorState::Instance());
 				break;
 			case 2: // entramos a las opciones
-					//engineMenu->ChangeState();
+					engineMenu->PushState(OptionsMenuState::Instance());
 				break;
 			case 3: //salimos
 				exit(0);
@@ -303,7 +304,6 @@ string fileMap ="";
 		//Posible problema con la luz
 		glEnable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D); //habilitamos textura
-								 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
 
 		background();
 		botones();

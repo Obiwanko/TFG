@@ -23,6 +23,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainMenuState.cpp" />
     <ClCompile Include="MapSelectorState.cpp" />
+    <ClCompile Include="OptionsMenuState.cpp" />
     <ClCompile Include="StateEngine.cpp" />
     <ClCompile Include="Utilidades.cpp" />
   </ItemGroup>
@@ -32,6 +33,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="MainMenuState.h" />
     <ClInclude Include="MapSelectorState.h" />
+    <ClInclude Include="OptionsMenuState.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="StateEngine.h" />
     <ClInclude Include="Tramos.h" />

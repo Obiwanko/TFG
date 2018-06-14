@@ -32,7 +32,9 @@ Variables para la resolucion y la repeticion de texturas, vendrán cargadas desde
 */
 extern GLint resolucion;
 extern GLint repeticionTex;
+extern GLint graficos;
 extern GLboolean fullscreen;
+
 
 /*
 **********************************************************************

@@ -37,6 +37,7 @@ GLfloat aumentovelocidadgiro = 10;// lo uso para probar ya que la velocidad de g
  GLint resolucion = 0;
  GLint repeticionTex = 0;
  GLboolean fullscreen = false;
+ GLint graficos = 0;
 
 //Identificadores listas poligonos
 GLint circuito1;
@@ -638,10 +639,10 @@ void setResolucion(int v) {
 void setFullScreen(int f) {
 	switch (f)
 	{
-	case 0: //low settings
+	case 0: //sin ser full screnn
 		fullscreen = false;
 		break;
-	case 1: //medium settings
+	case 1: //fullscreen
 		fullscreen = true;
 		break;
 
@@ -665,6 +666,7 @@ void cargarOpciones() {
 			if (a == 1) {
 				setFullScreen(stoi(variable));
 			}
+			a++;
 		}
 	}
 }
@@ -677,10 +679,11 @@ void main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // Alta de buffers a usar
 	//Todo cambiarlo para que vaya por opciones
 	cargarOpciones();
+	
 	//glutInitWindowSize(800, 600); // Tamanyo inicial de la ventana
 	//glutCreateWindow("Creador Circuitos");	// Pone el titulo para que se vaya actualizando luego en onkey
 	//glutDisplayFunc(display); // Alta de la funcion de atencion a display
-	engine.Init("test");
+	engine.Init("test",800,600,fullscreen);
 	
 	engine.ChangeState(MainMenuState::Instance());
 	glutDisplayFunc(testo);
