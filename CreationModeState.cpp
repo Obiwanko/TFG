@@ -1,6 +1,9 @@
 #include "StateEngine.h"
 #include "State.h"
 #include "CreationModeState.h"
+#include "OptionsMenuState.h"
+#include "MapSelectorState.h"
+#include "MainMenuState.h"
 #include <Utilidades.h> // Biblioteca de Utilidades
 #include "Globals.h"
 #include <iostream> // Biblioteca de entrada salida
@@ -40,6 +43,7 @@ GLint tramoactual = 0;
 //control de la rotacion de las piezas en el HUD
 GLfloat rotacion_pieza = 0;
 
+GLboolean pausa = false;
 
 
 /*
@@ -78,6 +82,11 @@ GLuint textura_coche;
 BOOLEAN leftclick = false;
 BOOLEAN rightclick = false;
 
+
+//variables de uso durante la pausa
+GLint ButtonPausa = 0;
+GLuint textura_BotonSeleccionadoPausa;
+GLuint textura_BotonSinSeleccionarPausa;
 
 void init_de_Textura(GLuint &id, char* nombre)
 {
@@ -223,7 +232,6 @@ void addTramoToVector(int id, int posID, string line) {
 		vectorTramosEnMemoria.push_back(new Looping(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
 		break;
 	default:
-
 		break;
 	}
 }
@@ -336,6 +344,84 @@ void mouse(int button, int state, int x, int y)
 }
 
 
+/*
+Funciones de escucha durante la puasa
+*/
+/*
+Sencillo metodo para seguir la logica de la actualizacion del menu.
+*/
+GLint actualizarButtonPausa(GLint button) {
+	if (button<0) {
+		button = 3;
+	}
+	else if (button == 4) {
+		button = 0;
+	}
+	return button;
+}
+
+void onSpecialKeyPausa(int specialKey, int x, int y) {
+	switch (specialKey) {
+	case GLUT_KEY_LEFT:
+		break;
+	case GLUT_KEY_RIGHT:
+		break;
+	case GLUT_KEY_UP:
+		ButtonPausa = actualizarButtonPausa(ButtonPausa - 1);
+		break;
+	case GLUT_KEY_DOWN:
+		ButtonPausa = actualizarButtonPausa(ButtonPausa + 1);
+		break;
+	}
+	cout << " specialkey " << ButtonPausa << "\n";
+}
+
+
+void vaciarTramosEnMemoria() {
+	//while (!vectorTramosEnMemoria.empty())
+		vectorTramosEnMemoria.clear();
+}
+
+void onKeyPausa(unsigned char tecla, int x, int y)
+// Funcion de atencion al teclado
+{	
+	cout << " key " << ButtonPausa << "\n";
+	//float xrotrad, yrotrad;
+	switch (tecla) {
+	case 13://se pulsa enter
+		switch (ButtonPausa)
+		{
+		case 0: //Reanudamos el modo creacion
+			CreationModeState::Instance()->Resume();
+			break;
+		case 1: // Seleccionamos otro mapa
+			pausa = false;
+			vaciarTramosEnMemoria();
+			engineCreation->PushState(MapSelectorState::Instance());
+			break;
+		case 2: // entramos a las opciones
+			pausa = false;
+			engineCreation->PushState(OptionsMenuState::Instance());
+			break;
+		case 3: //guardamos y salimos
+			guardarCircuitoToFile();
+			engineCreation->Cleanup();
+			engineCreation->PushState(MainMenuState::Instance());
+			break;
+		default:
+			break;
+		}
+		break;
+	case 8: //se pulsa retroceso.
+		break;
+	case 27: // Pulso escape
+		CreationModeState::Instance()->Resume();
+		
+	}
+}
+
+
+
 void añade_tramo(GLint identificador) {
 	// sumamos +1 ya que los arrays empiezan por 0
 	//TODO añadir la variables que utilizaré en los globals
@@ -413,9 +499,14 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		}
 		break;
 	case 27: // Pulso escape
-			 //TODO AÑADIR MENU
-		guardarCircuitoToFile();
-		exit(0);
+		ButtonPausa = 0;
+		CreationModeState::Instance()->Pause();
+		//damos de alta a las funciones de escucha del menu
+		glutSpecialFunc(onSpecialKeyPausa);
+		glutKeyboardFunc(onKeyPausa);
+		
+		//guardarCircuitoToFile();
+		//exit(0);
 	}
 }
 
@@ -436,7 +527,7 @@ void CreationModeState::Init(StateEngine* engine) {
 	//inicializamos la camara con los valores por defecto.
 	camaraflotante = Camera();
 
-
+	pausa = false;
 	iluminacion();
 
 	//Texturas
@@ -459,20 +550,40 @@ void CreationModeState::Init(StateEngine* engine) {
 	init_de_Textura(textura_goal, "./textures/goal.PNG");
 	init_de_Textura(textura_start, "./textures/start.PNG");
 	init_de_Textura(textura_coche, "./textures/coche.PNG");
+	init_de_Textura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
+	init_de_Textura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
 }
 
 //Limpiar texturas etc
 void CreationModeState::Cleanup() {
-
+	glutSpecialFunc(NULL);
+	glutKeyboardFunc(NULL);
+	//glutIdleFunc(NULL);
+	glutMouseFunc(NULL);
 }
 
+void updateRes() {
+	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
+		vectorTramosEnMemoria[i]->setRes(resolucion);
+	}
+}
 
 void CreationModeState::Resume() {
-
+	pausa = false;
+	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
+	glutKeyboardFunc(onKeyCreacion);// Alta de la funcion de atencion al teclado 
+	glutIdleFunc(onIdleCreation); // Alta de la funcion de atencion a idle
+	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
+	updateRes();
 }
 
 void CreationModeState::Pause() {
-
+	pausa = true;
+	//desactivamos las funciones de escucha
+	glutSpecialFunc(NULL);
+	glutKeyboardFunc(NULL);
+	//glutIdleFunc(NULL); 
+	glutMouseFunc(NULL);
 }
 
 
@@ -582,6 +693,8 @@ void dibuja_tramo_HUD(GLint identificador) {
 
 
 void hudElementBaseSelectorPiezas() {
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	// Habilitamos blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -697,13 +810,14 @@ void hudElementBaseSelectorPiezas() {
 
 	// Z-Buffer a estado normal
 	glDepthMask(GL_TRUE);
-
+	glPopAttrib();
 
 }
 
 
 //TODO continuar con el selector de piezas, ver como hacer las animaciones mas automatizables y la colocacion de las piezas mas automatizables.
 void hudElementPiezasVisibles() {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	// Habilitamos blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -767,9 +881,131 @@ void hudElementPiezasVisibles() {
 	glPopAttrib();
 	// Z-Buffer a estado normal
 	glDepthMask(GL_TRUE);
+	glPopAttrib();
+}
+
+
+void botonesPausa() {
+
+	if (ButtonPausa == 0) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	GLfloat v0[3] = { -0.6,0.2,0.0 };
+	GLfloat v1[3] = { 0.6,0.2,0.0 };
+	GLfloat v3[3] = { -0.6,0.0,0.0 };
+	GLfloat v2[3] = { 0.6,0.0,0.0 };
+
+
+	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		0, 1, 0, 1, 1, 1);
+
+	if (ButtonPausa == 1) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	v0[1] = -0.1;
+	v1[1] = -0.1;
+	v2[1] = -0.3;
+	v3[1] = -0.3;
+
+	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		0, 1, 0, 1, 1, 1);
+
+
+	if (ButtonPausa == 2) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	v0[1] = -0.4;
+	v1[1] = -0.4;
+	v2[1] = -0.6;
+	v3[1] = -0.6;
+
+	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		0, 1, 0, 1, 1, 1);
+
+	if (ButtonPausa == 3) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	v0[1] = -0.7;
+	v1[1] = -0.7;
+	v2[1] = -0.9;
+	v3[1] = -0.9;
+
+	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		0, 1, 0, 1, 1, 1);
+
 
 }
 
+
+void textosBotonesPausa() {
+	if (ButtonPausa == 0)
+		textoStroke(-0.18, 0.07, 0.2, "Reanudar", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.18, 0.07, 0.2, "Reanudar", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+	if (ButtonPausa == 1)
+		textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+	if (ButtonPausa == 2)
+		textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+	if (ButtonPausa == 3)
+		textoStroke(-0.27, -0.83, 0.2, "Salir y Guardar", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.27, -0.83, 0.2, "Salir y Guardar", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+}
+
+void menuPausa() {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// Z-Buffer
+	glDepthMask(GL_FALSE);
+	// Dibujar traslucidos
+	//la tira donde se colocaran las piezas
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D); //habilitamos textura
+	
+	botonesPausa();
+	textosBotonesPausa();
+	glPopAttrib();
+}
 
 void hudModoCreacion() {
 
@@ -787,8 +1023,16 @@ void hudModoCreacion() {
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	//Nos disponemos a añadir los elementos al hud, de esta forma, podremos tener elementos añadidos de forma constante delante de la camara y crear una interfaz para el usuario.
-	hudElementBaseSelectorPiezas();
-	hudElementPiezasVisibles();
+
+
+	if (!pausa) {
+		hudElementBaseSelectorPiezas();
+		hudElementPiezasVisibles();
+	}
+	else {
+		menuPausa();
+	}
+
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -812,6 +1056,8 @@ void dibujoCircuito() {
 
 }
 
+
+
 //TODO completar esta mision
 void CreationModeState::Draw(StateEngine* game) {
 	
@@ -823,6 +1069,7 @@ void CreationModeState::Draw(StateEngine* game) {
 	camaraflotante.SetGluLookUp();
 	dibujoCircuito();
 	hudModoCreacion();
+
 	
 	glPopMatrix();
 

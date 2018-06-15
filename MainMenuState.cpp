@@ -20,7 +20,7 @@ GLint Button=0;
 string fileMap ="";
 
 	/*
-	Sencillo metodod para seguir la logica de la actualizacion del menu.
+	Sencillo metodo para seguir la logica de la actualizacion del menu.
 	*/
 	GLint actualizarButton(GLint button) {
 		if (button<0) {

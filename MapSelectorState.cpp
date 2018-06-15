@@ -119,6 +119,7 @@ void MapSelectorState::Init(StateEngine* engine) {
 void MapSelectorState::Cleanup() {
 	glutSpecialFunc(NULL);
 	glutKeyboardFunc(NULL);
+	nombresFicheros.clear();
 }
 
 

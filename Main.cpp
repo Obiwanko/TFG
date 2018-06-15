@@ -37,7 +37,7 @@ GLfloat aumentovelocidadgiro = 10;// lo uso para probar ya que la velocidad de g
  GLint resolucion = 0;
  GLint repeticionTex = 0;
  GLboolean fullscreen = false;
- GLint graficos = 0;
+ GLint graficos = 1;
 
 //Identificadores listas poligonos
 GLint circuito1;
@@ -621,14 +621,17 @@ void setResolucion(int v) {
 	case 1: //low settings
 		resolucion = 10;
 		repeticionTex = 1;
+		graficos = 1;
 		break;
 	case 2: //medium settings
 		resolucion = 20;
 		repeticionTex = 1;
+		graficos = 2;
 		break;
 	case 3:
 		resolucion = 30;
 		repeticionTex = 1;
+		graficos = 3;
 		break;
 	default:
 		break;

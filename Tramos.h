@@ -98,6 +98,9 @@ public:
 
 	};
 
+	void setRes(GLint res) {
+		_res = res;
+	}
 
 	virtual void drawing() {
 		draw();

@@ -22,7 +22,7 @@ void StateEngine::Cleanup()
 		states.back()->Cleanup();
 		states.pop_back();
 	}
-	exit(0);
+	
 }
 
 void StateEngine::ChangeState(State* state)
