@@ -56,6 +56,7 @@ protected:
 	float _ancho, _longitud;				// ancho y longitud del tramo
 	const int _id = 1;
 	Point3D _posicionUltimoTramo;
+
 public:
 	//valores por defecto
 
@@ -73,7 +74,7 @@ public:
 		
 	};
 
-	void draw( ) 
+	void draw(GLuint textura, GLuint texturaLateral) 
 	{
 		// Se construye un quadtex con la resolucion pedida para que los 
 		// miniquads salgan cuadrados. La textura se repite a lo largo del 
@@ -86,15 +87,95 @@ public:
 		Point3D v3( _longitud, 0, -_ancho/2 );
 		Point3D v2( _longitud, 0,  _ancho/2 );
 
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+								 
+
+		//Uso de las texturas
+		glBindTexture(GL_TEXTURE_2D, textura);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+
 		float resXmetro = _res / max( _longitud, _ancho );
 		quadtex( (GLfloat*) v0, (GLfloat*) v1, (GLfloat*) v2, (GLfloat*) v3,
 			     0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro) );
+
+		glPopAttrib();
+		
+
+		//Dibujamos las otras placas de forma que los tramos sean figuras con volumen
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		//parte de abajo
+
+		v0.y -= _ancho * 0.15;
+		v1.y -= _ancho * 0.15;
+		v2.y -= _ancho * 0.15;
+		v3.y -= _ancho * 0.15;
+		
+		//cambiamos la orientacion para que la luz se refleje correctamente
+		quadtex((GLfloat*)v1, (GLfloat*)v0, (GLfloat*)v3, (GLfloat*)v2,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+
+		Point3D l0(0, 0, -_ancho / 2);
+		Point3D l1(0, -_ancho*0.15, -_ancho / 2);
+		Point3D l3(_longitud, 0, -_ancho / 2);
+		Point3D l2(_longitud, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+		Point3D r0(0, 0, _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D r3(_longitud, 0, _ancho / 2);
+		Point3D r2(_longitud, -_ancho * 0.15, _ancho / 2);
+
+		quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+		//finalmente dibujamos la tapa trasera y la tapa delantera
+
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+
+		Point3D f0(_longitud, 0, _ancho / 2);
+		Point3D f1(_longitud, -_ancho * 0.15, _ancho / 2);
+		Point3D f3(_longitud, 0, -_ancho / 2);
+		Point3D f2(_longitud, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)f0, (GLfloat*)f1, (GLfloat*)f2, (GLfloat*)f3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+		glPopAttrib();
+
 
 		glTranslatef( _longitud, 0, 0 );
 
 		//actualizamos la variable posicion global
 		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 
+		
 
 	};
 
@@ -102,8 +183,8 @@ public:
 		_res = res;
 	}
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 		//actualizamos la variable posicion global
 
 	}
@@ -135,7 +216,7 @@ public:
 		if( longitud < ancho*rad(abs(grados))/2 ) _longitud = ancho*rad(abs(grados))/2;
 	};
 
-	void draw()
+	void draw(GLuint textura, GLuint texturaLateral)
 	{
 		// Dibuja una curva a la izquierda cuando el angulo es positivo y a la derecha cuando negativo
 
@@ -149,6 +230,26 @@ public:
 		float angulo_quad = rad( abs( _angulo ) ) / _res;
 
 		glPushMatrix();
+		
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+
+		//Parte trasera
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+
 		if( _angulo < 0 ) glScalef( 1, 1, -1 );				// curva a derechas
 		glTranslatef( 0, 0, -radio );
 
@@ -157,28 +258,120 @@ public:
 		Point3D v3;
 		Point3D v2;
 
+
+		//parte inferior
+		Point3D lo0(0, -_ancho*0.15, radio - _ancho / 2);
+		Point3D lo1(0, -_ancho * 0.15, radio + _ancho / 2);
+		Point3D lo3;
+		Point3D lo2;
+
+		lo3.y = -_ancho * 0.15;
+		lo2.y = -_ancho * 0.15;
+
+
+		//parte lateral izquierda
+		Point3D l0(0, 0, radio -_ancho / 2);
+		Point3D l1(0, -_ancho * 0.15, radio -_ancho / 2);
+		Point3D l3;
+		Point3D l2;
+		l2.y -= _ancho * 0.15;
+
+
+		Point3D r0(0, 0, radio+ _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, radio+ _ancho / 2);
+		Point3D r3;
+		Point3D r2;
+		r2.y -= _ancho * 0.15;
+
 		for( int i = 0; i < _res; i++ ){
+			//Uso de las texturas
+			glBindTexture(GL_TEXTURE_2D, textura);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			//parte superior	
 			v3.x = (radio - _ancho/2) * sin( (i+1)*angulo_quad );
 			v3.z = (radio - _ancho/2) * cos( (i+1)*angulo_quad );
 			v2.x = (radio + _ancho/2) * sin( (i+1)*angulo_quad );
 			v2.z = (radio + _ancho/2) * cos( (i+1)*angulo_quad );
-
 			// Al hacer reflexion con glScale(1,1,-1) el quad hay que darlo en horario para que quede en antihorario
 			
 				quadtex( (GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 				          0, 1, i*float(_texX)/_res, (i+1)*float(_texX)/_res, _res, 1 );
+			
+			//el resto de partes tienen la textura secundaria
+			glBindTexture(GL_TEXTURE_2D, texturaLateral);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			
+			//parte inferior
+			lo3.x = v3.x;
+			lo3.z = v3.z;
+			lo2.x = v2.x;
+			lo2.z = v2.z;
 
+			quadtex((GLfloat*)lo0, (GLfloat*)lo1, (GLfloat*)lo2, (GLfloat*)lo3,
+					0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+			
+			//laterales
+			l3.x = v3.x;
+			l3.z = v3.z;
+			l2.x = v3.x;
+			l2.z = v3.z;
 
+			quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3,0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			r3.x = v2.x;
+			r3.z = v2.z;
+			r2.x = v2.x;
+			r2.z = v2.z;
+
+			quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3,0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+			
+			//actualizamos valores de los puntos anteriores
+
+			//lateral izquierdo
+			l0.x = l3.x; l0.z = l3.z;
+			l1.x = l2.x; l1.z = l2.z;
+
+			//lateral derecho
+			r0.x = r3.x; r0.z = r3.z;
+			r1.x = r2.x; r1.z = r2.z;
+
+			//superior
 			v0.x = v3.x; v0.z = v3.z;
 			v1.x = v2.x; v1.z = v2.z;
+
+			//inferior
+			lo0.x = lo3.x; lo0.z = lo3.z;
+			lo1.x = lo2.x; lo1.z = lo2.z;
+
+
+			
+
+
 		}
 		glPopMatrix();
 
+	
 		// Situa el s.r. al final de tramo
 		glTranslatef( 0, 0, -signo(_angulo) * radio );
 		glRotatef( _angulo, 0,1,0 );
 		glTranslatef( 0, 0, signo(_angulo) * radio );
 
+
+		//bujamos la parte delantera aprovechando el cambio de posicion del translate
+
+		//Parte trasera
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+		glPopAttrib();
 		//aplicamos los mismos cambios en nuestro vector de posicion
 		//posicionUltimoTramo.z +=  -signo(_angulo) * radio;
 		//posicionUltimoTramo.x = (posicionUltimoTramo.x*cos(_angulo)) + (sin(_angulo)*posicionUltimoTramo.z);
@@ -187,8 +380,8 @@ public:
 
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	/*
@@ -224,7 +417,7 @@ public:
 
 	};
 
-	void draw() const
+	void draw(GLuint textura, GLuint texturaLateral) const
 	{
 		// Se construye un quadtex con la resolucion pedida para que los 
 		// miniquads salgan cuadrados. La textura se repite a lo largo del 
@@ -232,21 +425,106 @@ public:
 		// El tramo se dibuja en el s.r. del modelo hacia x+
 		// Al final mueve el s.r. al final del tramo
 
+		float altura = _longitud * _pendiente;
+
 		Point3D v0(0, 0, -_ancho / 2);
 		Point3D v1(0, 0, _ancho / 2);
-		Point3D v3(_longitud, _longitud*_pendiente, -_ancho / 2);
-		Point3D v2(_longitud, _longitud*_pendiente, _ancho / 2);
+		Point3D v3(_longitud, altura, -_ancho / 2);
+		Point3D v2(_longitud, altura, _ancho / 2);
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+								 
+								 //Uso de las texturas
+		glBindTexture(GL_TEXTURE_2D, textura);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
 
 		float resXmetro = _res / max(_longitud, _ancho);
 		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3, 0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+		
+		glPopAttrib();
+		
 
-		glTranslatef(_longitud, _longitud*_pendiente, 0);
+		//Dibujamos las otras placas de forma que los tramos sean figuras con volumen
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		//parte de abajo
+
+		v0.y -= _ancho * 0.15;
+		v1.y -= _ancho * 0.15;
+		v2.y -= _ancho * 0.15;
+		v3.y -= _ancho * 0.15;
+
+		//cambiamos la orientacion para que la luz se refleje correctamente
+		quadtex((GLfloat*)v1, (GLfloat*)v0, (GLfloat*)v3, (GLfloat*)v2,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+		
+
+		//laterales
+		Point3D l0(0, 0, -_ancho / 2);
+		Point3D l1(0, -_ancho * 0.15, -_ancho / 2);
+		Point3D l3(_longitud, altura, -_ancho / 2);
+		Point3D l2(_longitud, altura - _ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+		Point3D r0(0, 0, _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D r3(_longitud, altura, _ancho / 2);
+		Point3D r2(_longitud, altura - _ancho * 0.15, _ancho / 2);
+
+		quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+
+
+
+		//finalmente dibujamos la tapa trasera y la tapa delantera
+
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+
+
+		Point3D f0(_longitud, altura, _ancho / 2);
+		Point3D f1(_longitud, altura - _ancho * 0.15, _ancho / 2);
+		Point3D f3(_longitud, altura, -_ancho / 2);
+		Point3D f2(_longitud, altura - _ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)f0, (GLfloat*)f1, (GLfloat*)f2, (GLfloat*)f3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_longitud*resXmetro));
+		
+
+
+		glPopAttrib();
+
+		glTranslatef(_longitud, altura, 0);
 		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 		//posicionUltimoTramo.y = posicionUltimoTramo.y + _longitud * _pendiente;
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	/*
@@ -279,7 +557,7 @@ public:
 		_pendiente = min(pendiente, 1.5);
 	};
 
-	void draw()
+	void draw(GLuint textura, GLuint texturaLateral)
 	{
 		// Dibuja una curva a la izquierda cuando el angulo es positivo y a la derecha cuando negativo
 
@@ -291,45 +569,151 @@ public:
 		// La textura en t se reparte entre los quads
 
 		float angulo_quad = rad(abs(_angulo)) / _res;
+		float altura = _longitud * _pendiente;
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+
+								 //Parte trasera
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
 
 		glPushMatrix();
 		if (_angulo < 0) glScalef(1, 1, -1);				// curva a derechas
 		glTranslatef(0, 0, -radio);
 
+		//parte superior
 		Point3D v0(0, 0, radio - _ancho / 2);
 		Point3D v1(0, 0, radio + _ancho / 2);
 		Point3D v3;
 		Point3D v2;
+
+
+
+		//parte inferior
+		Point3D lo0(0, -_ancho * 0.15, radio - _ancho / 2);
+		Point3D lo1(0, -_ancho * 0.15, radio + _ancho / 2);
+		Point3D lo3;
+		Point3D lo2;
+
+
+		//parte lateral izquierda
+		Point3D l0(0, 0, radio - _ancho / 2);
+		Point3D l1(0, -_ancho * 0.15, radio - _ancho / 2);
+		Point3D l3;
+		Point3D l2;
+
+
+		Point3D r0(0, 0, radio + _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, radio + _ancho / 2);
+		Point3D r3;
+		Point3D r2;
+	
+
 
 		for (int i = 0; i < _res; i++) {
 			
 			float inc = (float)(i+1) / (float)_res;
 			
 			v3.x = (radio - _ancho / 2) * sin((i + 1)*angulo_quad);
-			v3.y = _longitud * inc* _pendiente;
+			v3.y = altura* inc;
 	
 			v3.z = (radio - _ancho / 2) * cos((i + 1)*angulo_quad);
 			v2.x = (radio + _ancho / 2) * sin((i + 1)*angulo_quad);
-			v2.y = _longitud*inc * _pendiente;
+			v2.y = altura *inc ;
 			v2.z = (radio + _ancho / 2) * cos((i + 1)*angulo_quad);
 
 			// Al hacer reflexion con glScale(1,1,-1) el quad hay que darlo en horario para que quede en antihorario
-		
-				quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
-					
-					0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+			glBindTexture(GL_TEXTURE_2D, textura);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
 	
 
-			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
-			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
+			//el resto de partes tienen la textura secundaria
+			glBindTexture(GL_TEXTURE_2D, texturaLateral);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+			//parte inferior
+			lo3.x = v3.x;
+			lo3.z = v3.z;
+			lo3.y = v3.y - (_ancho * 0.15);
+			lo2.x = v2.x;
+			lo2.z = v2.z;
+			lo2.y = v2.y - (_ancho * 0.15);
+
+			quadtex((GLfloat*)lo0, (GLfloat*)lo1, (GLfloat*)lo2, (GLfloat*)lo3,0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			//laterales
+			l3.x = v3.x;
+			l3.z = v3.z;
+			l3.y = v3.y;
+			l2.x = v3.x;
+			l2.z = v3.z;
+			l2.y = v3.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			r3.x = v2.x;
+			r3.z = v2.z;
+			r3.y = v2.y;
+			r2.x = v2.x;
+			r2.z = v2.z;
+			r2.y = v2.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			//actualizamos valores de los puntos anteriores
+
+			//lateral izquierdo
+			l0 = l3;
+			l1 = l2;
+
+			//lateral derecho
+			r0 = r3; 
+			r1 = r2; 
+
+			//inferior
+			lo0 = lo3; 
+			lo1 = lo2;
+
+			//superior
+			v0 = v3; 
+			v1 = v2;
 		}
 		glPopMatrix();
 
 		// Situa el s.r. al final de tramo
 		glTranslatef(0, 0, -signo(_angulo) * radio);
 		glRotatef(_angulo, 0, 1, 0);
-		glTranslatef(0, _longitud*_pendiente, signo(_angulo) * radio);
+		glTranslatef(0, altura, signo(_angulo) * radio);
+		
+		//Parte trasera
+		glBindTexture(GL_TEXTURE_2D, texturaLateral);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+		
+		glPopAttrib();
 		//aplicamos los cambios al vector de posicion
 		//posicionUltimoTramo.z += -signo(_angulo) * radio;
 		//posicionUltimoTramo.x = (posicionUltimoTramo.x*cos(_angulo)) + (sin(_angulo)*posicionUltimoTramo.z);
@@ -339,8 +723,8 @@ public:
 
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	/*
@@ -384,7 +768,7 @@ public:
 
 	};
 
-	void draw() const
+	void draw(GLuint textura, GLuint texturaLateral) const
 	{
 		// Se construye un quadtex con la resolucion pedida para que los 
 		// miniquads salgan cuadrados. La textura se repite a lo largo del 
@@ -402,6 +786,36 @@ public:
 		Point3D v3;
 		Point3D v2;
 
+
+		//parte inferior
+		Point3D lo0(0, -_ancho * 0.15, - _ancho / 2);
+		Point3D lo1(0, -_ancho * 0.15, + _ancho / 2);
+		Point3D lo3;
+		Point3D lo2;
+
+
+		//parte lateral izquierda
+		Point3D l0(0, 0,  - _ancho / 2);
+		Point3D l1(0, -_ancho * 0.15,  - _ancho / 2);
+		Point3D l3;
+		Point3D l2;
+
+
+		Point3D r0(0, 0,  _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D r3;
+		Point3D r2;
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+								 
+
+
+
+
 		for (int i = 0; i < _res; i++) {
 
 			float inc = (float)(i + 1) / (float)_res;
@@ -414,22 +828,90 @@ public:
 			v2.x = inc * _longitud;
 			v2.y = 0;
 			v2.z = (_ancho / 2) + _potencia *cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
-
+			//Uso de las texturas
+			glBindTexture(GL_TEXTURE_2D, textura);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
-
 				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
 
+			//Activamos textura secundaria
+			glBindTexture(GL_TEXTURE_2D, texturaLateral);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+			//parte inferior
+			lo3.x = v3.x;
+			lo3.z = v3.z;
+			lo3.y = v3.y - (_ancho * 0.15);
+			lo2.x = v2.x;
+			lo2.z = v2.z;
+			lo2.y = v2.y - (_ancho * 0.15);
+
+			quadtex((GLfloat*)lo0, (GLfloat*)lo1, (GLfloat*)lo2, (GLfloat*)lo3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			//laterales
+			l3.x = v3.x;
+			l3.z = v3.z;
+			l3.y = v3.y;
+			l2.x = v3.x;
+			l2.z = v3.z;
+			l2.y = v3.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			r3.x = v2.x;
+			r3.z = v2.z;
+			r3.y = v2.y;
+			r2.x = v2.x;
+			r2.z = v2.z;
+			r2.y = v2.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+
+			//lateral izquierdo
+			l0 = l3;
+			l1 = l2;
+
+			//lateral derecho
+			r0 = r3;
+			r1 = r2;
+
+			//inferior
+			lo0 = lo3;
+			lo1 = lo2;
+			
+			//superior
 			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
 			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
 		}
 
+		//tapa posterior
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+
+
+		
 		glTranslatef(_longitud, 0, 0);
+
+		//tapa frontal
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+		glPopAttrib();
 		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	/*
@@ -473,7 +955,7 @@ public:
 
 	};
 
-	void draw() const
+	void draw(GLuint textura, GLuint texturaLateral) const
 	{
 		// Se construye un quadtex con la resolucion pedida para que los 
 		// miniquads salgan cuadrados. La textura se repite a lo largo del 
@@ -491,6 +973,34 @@ public:
 		Point3D v3;
 		Point3D v2;
 
+		//parte inferior
+		Point3D lo0(0, -_ancho * 0.15, -_ancho / 2);
+		Point3D lo1(0, -_ancho * 0.15, +_ancho / 2);
+		Point3D lo3;
+		Point3D lo2;
+
+
+		//parte lateral izquierda
+		Point3D l0(0, 0, -_ancho / 2);
+		Point3D l1(0, -_ancho * 0.15, -_ancho / 2);
+		Point3D l3;
+		Point3D l2;
+
+
+		Point3D r0(0, 0, _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D r3;
+		Point3D r2;
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+								 
+
+
+
 		for (int i = 0; i < _res; i++) {
 
 			float inc = (float)(i + 1) / (float)_res;
@@ -503,22 +1013,87 @@ public:
 			v2.x = inc * _longitud;
 			v2.y = _potencia*cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)));
 			v2.z = (_ancho / 2);
-
+			//Uso de las texturas
+			glBindTexture(GL_TEXTURE_2D, textura);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 
 				0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			glBindTexture(GL_TEXTURE_2D, texturaLateral);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			//parte inferior
+			lo3.x = v3.x;
+			lo3.z = v3.z;
+			lo3.y = v3.y - (_ancho * 0.15);
+			lo2.x = v2.x;
+			lo2.z = v2.z;
+			lo2.y = v2.y - (_ancho * 0.15);
+
+			quadtex((GLfloat*)lo0, (GLfloat*)lo1, (GLfloat*)lo2, (GLfloat*)lo3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			//laterales
+			l3.x = v3.x;
+			l3.z = v3.z;
+			l3.y = v3.y;
+			l2.x = v3.x;
+			l2.z = v3.z;
+			l2.y = v3.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			r3.x = v2.x;
+			r3.z = v2.z;
+			r3.y = v2.y;
+			r2.x = v2.x;
+			r2.z = v2.z;
+			r2.y = v2.y - _ancho * 0.15;
+
+			quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+
+			//lateral izquierdo
+			l0 = l3;
+			l1 = l2;
+
+			//lateral derecho
+			r0 = r3;
+			r1 = r2;
+
+			//inferior
+			lo0 = lo3;
+			lo1 = lo2;
 
 
 			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
 			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
 		}
 
+		
+		//tapa posterior
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+
 		glTranslatef(_longitud, 0, 0);
+		//tapa frontal
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+		glPopAttrib();
 		//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	virtual void writeToFile(std::ostream& o) {
@@ -549,7 +1124,7 @@ public:
 		else _radio = radio;
 	};
 
-	void draw()
+	void draw(GLuint textura, GLuint texturaLateral)
 	{
 		
 
@@ -564,6 +1139,34 @@ public:
 		Point3D v1(0, 0, _ancho / 2);
 		Point3D v3;
 		Point3D v2;
+
+		//parte inferior
+		Point3D lo0(0, -_ancho * 0.15, -_ancho / 2);
+		Point3D lo1(0, -_ancho * 0.15, +_ancho / 2);
+		Point3D lo3;
+		Point3D lo2;
+
+
+		//parte lateral izquierda
+		Point3D l0(0, 0, -_ancho / 2);
+		Point3D l1(0, -_ancho * 0.15, -_ancho / 2);
+		Point3D l3;
+		Point3D l2;
+
+
+		Point3D r0(0, 0, _ancho / 2);
+		Point3D r1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D r3;
+		Point3D r2;
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+
+
+
 		
 		for (int i = 0; i < _res; i++) {
 
@@ -578,22 +1181,91 @@ public:
 			v2.x = (_radio * cos(((i + 1)*angulo_quad) - rad(abs(90) ) ) );
 			v2.y = (_radio * sin(((i + 1)*angulo_quad) - rad(abs(90) ) ) )+_radio;
 			v2.z = (_ancho / 2) + inc * _separacion;
-
+			//Uso de las texturas
+			glBindTexture(GL_TEXTURE_2D, textura);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
 
 					0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
 		
 
+			glBindTexture(GL_TEXTURE_2D, texturaLateral);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			float aux = _radio+(0.15*_ancho) ;
+
+			//parte inferior
+			lo3.x = (aux * cos(((i + 1)*angulo_quad) - rad(abs(90))));
+			lo3.y = -(0.15*_ancho) +(aux * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + aux;
+			lo3.z = v3.z;
+
+			lo2.x = (aux * cos(((i + 1)*angulo_quad) - rad(abs(90))));
+			lo2.y = -(0.15*_ancho) + (aux * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + aux;
+			lo2.z = v2.z;
+			quadtex((GLfloat*)lo0, (GLfloat*)lo1, (GLfloat*)lo2, (GLfloat*)lo3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			//laterales
+			l3.x = v3.x;
+			l3.z = v3.z;
+			l3.y = v3.y;
+			l2.x = lo3.x;
+			l2.z = lo3.z;
+			l2.y = lo3.y;
+
+			quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+			r3.x = v2.x;
+			r3.z = v2.z;
+			r3.y = v2.y;
+			r2.x = lo2.x;
+			r2.z = lo2.z;
+			r2.y = lo2.y;
+
+			quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+
+			//lateral izquierdo
+			l0 = l3;
+			l1 = l2;
+
+			//lateral derecho
+			r0 = r3;
+			r1 = r2;
+
+			//inferior
+			lo0 = lo3;
+			lo1 = lo2;
+
+
 			v0.x = v3.x; v0.z = v3.z; v0.y = v3.y;
 			v1.x = v2.x; v1.z = v2.z; v1.y = v3.y;
 		}
 
+	
+
+		//tapa posterior
+		Point3D b0(0, 0, _ancho / 2);
+		Point3D b1(0, -_ancho * 0.15, _ancho / 2);
+		Point3D b3(0, 0, -_ancho / 2);
+		Point3D b2(0, -_ancho * 0.15, -_ancho / 2);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+
 		glTranslatef(0, 0, _separacion);
+		//tapa frontal
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, 1, 1);
+		glPopAttrib();
 		//posicionUltimoTramo.z = posicionUltimoTramo.z + _separacion;
 	};
 
-	virtual void drawing() {
-		draw();
+	virtual void drawing(GLuint textura, GLuint texturaLateral) {
+		draw(textura, texturaLateral);
 	}
 
 	virtual void writeToFile(std::ostream& o) {

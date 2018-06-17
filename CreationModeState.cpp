@@ -76,6 +76,7 @@ GLuint textura_bandera3;
 GLuint textura_goal;
 GLuint textura_start;
 GLuint textura_coche;
+GLuint textura_carreteraLado;
 
 //boleanos de click izquierdo/click derecho
 
@@ -532,6 +533,7 @@ void CreationModeState::Init(StateEngine* engine) {
 
 	//Texturas
 	init_de_Textura(textura_carretera, "./textures/carretera.jpg");
+	init_de_Textura(textura_carreteraLado, "./textures/carreteralado.jpg");
 	init_de_Textura(textura_fondo, "./textures/fondo.jpg");
 	init_de_Textura(textura_nukacola, "./textures/nukacola.jpg");
 	init_de_Textura(textura_metal, "./textures/metal.jpg");
@@ -601,7 +603,7 @@ void CreationModeState::Update(StateEngine* game) {
 void dibujarTramosEnLista() {
 
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
-		vectorTramosEnMemoria[i]->drawing();
+		vectorTramosEnMemoria[i]->drawing(textura_carretera,textura_carreteraLado);
 	}
 }
 
@@ -611,25 +613,6 @@ void dibujarCircuitoEnMemoria()
 
 
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D); //habilitamos textura
-							 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
-
-							 //Uso de las texturas
-	glBindTexture(GL_TEXTURE_2D, textura_carretera);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	if (iluminacion) {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	}
-	else {
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	}
 
 
 	glPushMatrix();
@@ -637,7 +620,7 @@ void dibujarCircuitoEnMemoria()
 		dibujarTramosEnLista();
 	}
 	glPopMatrix();
-	glPopAttrib();
+
 }
 
 void dibuja_tramo_HUD(GLint identificador) {
@@ -647,45 +630,45 @@ void dibuja_tramo_HUD(GLint identificador) {
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Tramo(0.05, 0.15, resolucion, repeticionTex).draw();
+		Tramo(0.05, 0.15, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 2:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		TramoCurvo(0.05, 0.15, 90, resolucion, repeticionTex).draw();
+		TramoCurvo(0.05, 0.15, 90, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 3:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Rampa(0.05, 0.10, 0.5, resolucion, repeticionTex).draw();
+		Rampa(0.05, 0.10, 0.5, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 4:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		RampaCurva(0.05, 0.08, 90, 10, resolucion, repeticionTex).draw();
+		RampaCurva(0.05, 0.08, 90, 10, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 5:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoHorizontal(5, 15, 2, 2, true, resolucion, repeticionTex).draw();
+		TramoSinuosoHorizontal(5, 15, 2, 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 6:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoVertical(5, 15, 2, 2, true, resolucion, repeticionTex).draw();
+		TramoSinuosoVertical(5, 15, 2, 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 7:
 		//glRotatef(-180, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 0, 1, 0);
-		Looping(0.05, 0.06, 0.08, resolucion, repeticionTex).draw();
+		Looping(0.05, 0.06, 0.08, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 		//TODO añadir nuevas piezas conforme las vaya haciendo
 	}
