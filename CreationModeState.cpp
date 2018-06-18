@@ -89,6 +89,17 @@ GLint ButtonPausa = 0;
 GLuint textura_BotonSeleccionadoPausa;
 GLuint textura_BotonSinSeleccionarPausa;
 
+//variables de uso durante la construccion de las piezas
+GLfloat LongitudoRadio=2;
+GLfloat AnchoCarretera=5;
+GLfloat AngulosGrados=10;
+GLfloat Inclinacion=1;
+GLfloat Parametro_adicional=1;
+BOOLEAN direccion=true;
+
+
+
+
 void init_de_Textura(GLuint &id, char* nombre)
 {
 	glGenTextures(1, &id);
@@ -374,7 +385,7 @@ void onSpecialKeyPausa(int specialKey, int x, int y) {
 		ButtonPausa = actualizarButtonPausa(ButtonPausa + 1);
 		break;
 	}
-	cout << " specialkey " << ButtonPausa << "\n";
+
 }
 
 
@@ -386,8 +397,7 @@ void vaciarTramosEnMemoria() {
 void onKeyPausa(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {	
-	cout << " key " << ButtonPausa << "\n";
-	//float xrotrad, yrotrad;
+
 	switch (tecla) {
 	case 13://se pulsa enter
 		switch (ButtonPausa)
@@ -417,44 +427,111 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 		break;
 	case 27: // Pulso escape
 		CreationModeState::Instance()->Resume();
-		
+		break;
 	}
 }
 
+void resetVariables() {
+	LongitudoRadio = 2;
+	AnchoCarretera = 5;
+	AngulosGrados = 10;
+	Inclinacion = 1;
+	Parametro_adicional = 1;
+	direccion = true;
+}
 
 
 void añade_tramo(GLint identificador) {
 	// sumamos +1 ya que los arrays empiezan por 0
+	GLfloat angulo = 0;
+	if (direccion) {
+		angulo = -AngulosGrados;
+	}
+	else {
+		angulo = AngulosGrados;
+	}
 	//TODO añadir la variables que utilizaré en los globals
 	switch (identificador + 1) {
 	case 1:
-		vectorTramosEnMemoria.push_back(new Tramo(2, 10, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Tramo(AnchoCarretera, LongitudoRadio, resolucion, repeticionTex));
 		break;
 	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(2, 5, 90, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoCurvo(AnchoCarretera, LongitudoRadio, AngulosGrados, resolucion, repeticionTex));
 		break;
 	case 3:
-		vectorTramosEnMemoria.push_back(new Rampa(2, 5, 1, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, resolucion, repeticionTex));
 		break;
 	case 4:
-		vectorTramosEnMemoria.push_back(new RampaCurva(2, 5, 90, 10, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new RampaCurva(AnchoCarretera, LongitudoRadio,angulo, Inclinacion, resolucion, repeticionTex));
 		break;
 	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(2, 10, 2, 1, 1, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, AngulosGrados, Parametro_adicional, direccion, resolucion, repeticionTex));
 		break;
 	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(2, 10, 2, 1, 1, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, AngulosGrados, Parametro_adicional, direccion, resolucion, repeticionTex));
 		break;
 	case 7:
-		vectorTramosEnMemoria.push_back(new Looping(2, 5, 4.5, resolucion, repeticionTex));
+		GLfloat separacion;
+		if (direccion) {
+			separacion = -Parametro_adicional;
+		}
+		else {
+			separacion = Parametro_adicional;
+		}
+		vectorTramosEnMemoria.push_back(new Looping(AnchoCarretera, separacion, LongitudoRadio, resolucion, repeticionTex));
+		break;
+	}
+	resetVariables();
+}
+
+void dibuja_tramo_actual(GLint identificador) {
+	GLfloat angulo = 0;
+	if (direccion) {
+		angulo = -AngulosGrados;
+	}
+	else {
+		angulo = AngulosGrados;
+	}
+	
+	// sumamos +1 ya que los arrays empiezan por 0
+	switch (identificador + 1) {
+	case 1:
+		Tramo(AnchoCarretera, LongitudoRadio, resolucion, repeticionTex).draw(textura_carretera,textura_carreteraLado);
+		break;
+	case 2:
+
+		TramoCurvo(AnchoCarretera, LongitudoRadio, angulo, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		break;
+	case 3:
+		Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		break;
+	case 4:
+		RampaCurva(AnchoCarretera, LongitudoRadio, angulo, Inclinacion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		break;
+	case 5:
+		TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		break;
+	case 6:
+		TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		break;
+	case 7:
+		GLfloat separacion;
+		if (direccion) {
+			separacion = -Parametro_adicional;
+		}
+		else {
+			separacion = Parametro_adicional;
+		}
+		Looping(AnchoCarretera, separacion, LongitudoRadio, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	}
 }
 
+
+
 void onKeyCreacion(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
-	//float xrotrad, yrotrad;
 	switch (tecla) {
 	case 'W':
 	case 'w':
@@ -487,6 +564,7 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		else
 		{
 			// si no, simplemente marcamos la pieza como seleccionada
+	
 		}
 		seleccionado = !seleccionado;
 		break;
@@ -505,9 +583,58 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		//damos de alta a las funciones de escucha del menu
 		glutSpecialFunc(onSpecialKeyPausa);
 		glutKeyboardFunc(onKeyPausa);
-		
-		//guardarCircuitoToFile();
-		//exit(0);
+		break;
+	}
+
+
+
+	if (seleccionado) {
+		switch (tecla) {
+		case 't':
+		case 'T':
+			LongitudoRadio += 0.1;
+			break;
+		case 'g':
+		case 'G':
+			LongitudoRadio -= 0.1;
+			break;
+		case 'r':
+		case 'R':
+			direccion = !direccion;
+			break;
+		case 'f':
+		case 'F':
+			AnchoCarretera -= 0.1;
+			break;
+		case 'h':
+		case 'H':
+			AnchoCarretera += 0.1;
+			break;
+		case 'j':
+		case 'J':
+			AngulosGrados -= 0.25;
+			break;
+		case 'k':
+		case 'K':
+			AngulosGrados += 0.25;
+			break;
+		case 'u':
+		case 'U':
+			Inclinacion -= 0.1;
+			break;
+		case 'i':
+		case 'I':
+			Inclinacion += 0.1;
+			break;
+		case 'o':
+		case 'O':
+			Parametro_adicional -= 0.1;
+			break;
+		case 'p':
+		case 'P':
+			Parametro_adicional += 0.1;
+			break;
+		}
 	}
 }
 
@@ -598,6 +725,56 @@ void CreationModeState::Update(StateEngine* game) {
 
 }
 
+void texto_tramo_actual(GLint tramo) {
+
+
+	
+	switch (tramo + 1) {
+	case 1:
+		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 2:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 3:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 4:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 5:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 6:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		break;
+	case 7:
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		
+		break;
+		//TODO añadir nuevas piezas conforme las vaya haciendo
+	}
+}
 
 
 void dibujarTramosEnLista() {
@@ -618,6 +795,11 @@ void dibujarCircuitoEnMemoria()
 	glPushMatrix();
 	{
 		dibujarTramosEnLista();
+
+		if (seleccionado) {
+			dibuja_tramo_actual(tramoactual);
+
+		}
 	}
 	glPopMatrix();
 
@@ -1011,6 +1193,7 @@ void hudModoCreacion() {
 	if (!pausa) {
 		hudElementBaseSelectorPiezas();
 		hudElementPiezasVisibles();
+		texto_tramo_actual(tramoactual);
 	}
 	else {
 		menuPausa();
@@ -1029,13 +1212,12 @@ void dibujoCircuito() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
 	camaraflotante.SetGluLookUp();
-
 	glPolygonMode(GL_FRONT, GL_LINE);
 
 	dibujarCircuitoEnMemoria();
 
+	
 
 }
 
@@ -1049,7 +1231,7 @@ void CreationModeState::Draw(StateEngine* game) {
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	camaraflotante.SetGluLookUp();
+
 	dibujoCircuito();
 	hudModoCreacion();
 

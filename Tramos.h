@@ -811,10 +811,6 @@ public:
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D); //habilitamos textura
-								 
-
-
-
 
 		for (int i = 0; i < _res; i++) {
 
@@ -901,7 +897,7 @@ public:
 
 
 		
-		glTranslatef(_longitud, 0, 0);
+		glTranslatef(_longitud, 0, _potencia *cos(((_res)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad))));
 
 		//tapa frontal
 		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
@@ -1084,7 +1080,7 @@ public:
 		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
 			0, _texX, 0, _texX, 1, 1);
 
-		glTranslatef(_longitud, 0, 0);
+		glTranslatef(_longitud, _potencia*cos(((_res)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad))), 0);
 		//tapa frontal
 		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
 			0, _texX, 0, _texX, 1, 1);
@@ -1120,8 +1116,16 @@ public:
 	Looping(float ancho,float separacion, float radio, int res = 1, int repitetex = 1) : _separacion(separacion), _radio(), Tramo(ancho,1, res, repitetex)
 	{
 		// El radio debe ser igual que el ancho
-		if (radio < ancho) _radio = ancho;
+		if (radio < ancho*2) _radio = ancho*2;
 		else _radio = radio;
+
+		if (ancho*1.5 > abs(separacion)) {
+			_separacion = ancho * 1.5;
+		}
+		else {
+			_separacion = separacion;
+		}
+		
 	};
 
 	void draw(GLuint textura, GLuint texturaLateral)
