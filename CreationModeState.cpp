@@ -77,6 +77,7 @@ GLuint textura_goal;
 GLuint textura_start;
 GLuint textura_coche;
 GLuint textura_carreteraLado;
+GLuint textura_mesa;
 
 //boleanos de click izquierdo/click derecho
 
@@ -456,7 +457,7 @@ void añade_tramo(GLint identificador) {
 		vectorTramosEnMemoria.push_back(new Tramo(AnchoCarretera, LongitudoRadio, resolucion, repeticionTex));
 		break;
 	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(AnchoCarretera, LongitudoRadio, AngulosGrados, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoCurvo(AnchoCarretera, LongitudoRadio, angulo, resolucion, repeticionTex));
 		break;
 	case 3:
 		vectorTramosEnMemoria.push_back(new Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, resolucion, repeticionTex));
@@ -465,10 +466,10 @@ void añade_tramo(GLint identificador) {
 		vectorTramosEnMemoria.push_back(new RampaCurva(AnchoCarretera, LongitudoRadio,angulo, Inclinacion, resolucion, repeticionTex));
 		break;
 	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, AngulosGrados, Parametro_adicional, direccion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex));
 		break;
 	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, AngulosGrados, Parametro_adicional, direccion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex));
 		break;
 	case 7:
 		GLfloat separacion;
@@ -681,6 +682,7 @@ void CreationModeState::Init(StateEngine* engine) {
 	init_de_Textura(textura_coche, "./textures/coche.PNG");
 	init_de_Textura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
 	init_de_Textura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
+	init_de_Textura(textura_mesa, "./textures/madera.png");
 }
 
 //Limpiar texturas etc
@@ -1214,6 +1216,12 @@ void dibujoCircuito() {
 	glLoadIdentity();
 	camaraflotante.SetGluLookUp();
 	glPolygonMode(GL_FRONT, GL_LINE);
+
+
+
+	Mesa().draw(textura_mesa);
+
+
 
 	dibujarCircuitoEnMemoria();
 

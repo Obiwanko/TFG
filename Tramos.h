@@ -55,8 +55,6 @@ protected:
 	int _texX;								// nº rep textura
 	float _ancho, _longitud;				// ancho y longitud del tramo
 	const int _id = 1;
-	Point3D _posicionUltimoTramo;
-
 public:
 	//valores por defecto
 
@@ -938,7 +936,12 @@ public:
 	//Codiciones para que un tramo sea valido
 	TramoSinuosoVertical(float ancho, float longitud, float ondulacion,float potencia = 1, bool orientacion = true, int res = 10, int repitetex = 1)
 	{
-		_ancho = max(0, ancho);
+		if (ancho > 10) {
+			_ancho = 10;
+		}
+		else {
+			_ancho = max(0, ancho);
+		}
 		_longitud = max(0, longitud);
 		//minimo cinco quads para que se pueda mostrar la sinuosidad
 		_res = min(max(5, res), 100);
@@ -1277,5 +1280,178 @@ public:
 		o << _id << ';' << _ancho << ';' << _separacion << ';' << _radio << '\n';
 
 	}
+
+};
+
+
+
+
+class Mesa
+{
+protected:
+	int _res;								// resolucion
+	int _texX;								// nº rep textura
+	float _ancho, _largo, _profundo; 				// ancho y longitud y profundidad de la mesa
+	const int _id = 1;
+
+	void drawLeg() {
+		GLfloat medioancho = _ancho / 2;
+		GLfloat mediolargo = _largo / 2;
+
+		Point3D w0(0, -_profundo, 0);
+		Point3D w1(0, -_profundo - medioancho, 0);
+		Point3D w3(0, -_profundo, 0);
+		Point3D w2(0, -_profundo - medioancho, 0);
+
+		float angulo_quad = rad(abs(360)) / _res;
+		float radio = min(_largo, _ancho) / 8.0;
+		for (int i = 0; i < _res; i++) {
+
+			float inc = (float)(i + 1) / (float)_res;
+
+
+			w3.x = radio * cos(((i + 1)*angulo_quad) - rad(abs(90)));
+			w3.z = (radio * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + radio;
+
+
+			w2.x = (radio * cos(((i + 1)*angulo_quad) - rad(abs(90))));
+			w2.z = (radio * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + radio;
+
+			quadtex((GLfloat*)w0, (GLfloat*)w1, (GLfloat*)w2, (GLfloat*)w3, 0, 1, i*float(_texX) / _res, (i + 1)*float(_texX) / _res, _res, 1);
+
+
+			w0.x = w3.x; w0.z = w3.z;
+			w1.x = w2.x; w1.z = w2.z;
+		}
+	}
+public:
+	//valores por defecto
+
+	Mesa() : _res(10), _texX(1), _ancho(100), _largo(200),_profundo(20) {};
+
+	//Codiciones para que un tramo sea valido
+	Mesa(float ancho, float longitud, float profundo, int res = 1, int repitetex = 1)
+	{
+		_ancho = max(0, ancho);
+		_largo = max(0, longitud);
+		_res = min(max(1, res), 100);
+		_texX = max(1, repitetex);
+		_profundo = max(0, profundo);
+
+
+	};
+
+	
+
+	void draw(GLuint textura)
+	{
+
+		glPushMatrix();
+
+		glTranslatef(0, -1.5, 0);
+
+		GLfloat medioancho = _ancho / 2;
+		GLfloat mediolargo = _largo / 2;
+
+		Point3D v0(-mediolargo, 0, -medioancho);
+		Point3D v1(-mediolargo, 0, medioancho);
+		Point3D v3(mediolargo, 0, -medioancho);
+		Point3D v2(mediolargo, 0, medioancho);
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D); //habilitamos textura
+
+
+								 //Uso de las texturas
+		glBindTexture(GL_TEXTURE_2D, textura);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+
+		float resXmetro = _res / max(_largo, _ancho);
+		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+		//parte de abajo
+
+		v0.y -= _profundo;
+		v1.y -= _profundo;
+		v2.y -= _profundo;
+		v3.y -= _profundo;
+
+		//cambiamos la orientacion para que la luz se refleje correctamente
+		quadtex((GLfloat*)v1, (GLfloat*)v0, (GLfloat*)v3, (GLfloat*)v2,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+
+		Point3D l0(-mediolargo, 0, -medioancho);
+		Point3D l1(-mediolargo, -_profundo, -medioancho);
+		Point3D l3(mediolargo, 0, -medioancho);
+		Point3D l2(mediolargo, -_profundo, -medioancho);
+
+		quadtex((GLfloat*)l0, (GLfloat*)l1, (GLfloat*)l2, (GLfloat*)l3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+		Point3D r0(-mediolargo, 0, medioancho);
+		Point3D r1(-mediolargo, -_profundo, medioancho);
+		Point3D r3(mediolargo, 0, medioancho);
+		Point3D r2(mediolargo, -_profundo, medioancho);
+
+		quadtex((GLfloat*)r0, (GLfloat*)r1, (GLfloat*)r2, (GLfloat*)r3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+		//finalmente dibujamos la tapa trasera y la tapa delantera
+
+		Point3D b0(-mediolargo, 0, medioancho);
+		Point3D b1(-mediolargo, -_profundo, medioancho);
+		Point3D b3(-mediolargo, 0, -medioancho);
+		Point3D b2(-mediolargo, -_profundo, -medioancho);
+
+		quadtex((GLfloat*)b0, (GLfloat*)b1, (GLfloat*)b2, (GLfloat*)b3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+
+		Point3D f0(mediolargo, 0, medioancho);
+		Point3D f1(mediolargo, -_profundo, medioancho);
+		Point3D f3(mediolargo, 0, -medioancho);
+		Point3D f2(mediolargo, -_profundo, -medioancho);
+
+		quadtex((GLfloat*)f0, (GLfloat*)f1, (GLfloat*)f2, (GLfloat*)f3,
+			0, _texX, 0, _texX, int(_ancho*resXmetro), int(_largo*resXmetro));
+
+
+		//patas
+
+		glPushMatrix();
+		glTranslatef(_largo*0.4,0,_ancho*0.25);
+		drawLeg();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(_largo*0.4, 0, -_ancho*0.5);
+		drawLeg();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(-_largo*0.4, 0, _ancho*0.25);
+		drawLeg();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(-_largo*0.4, 0, -_ancho*0.5);
+		drawLeg();
+		glPopMatrix();
+
+		glPopMatrix();
+
+		glPopAttrib();
+
+	};
 
 };
