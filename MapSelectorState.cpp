@@ -2,7 +2,7 @@
 #include "State.h"
 #include "MapSelectorState.h"
 #include "CreationModeState.h"
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h"
 #include <string>
 #include <filesystem>
@@ -69,12 +69,6 @@ void onSpecialKeySelector(int specialKey, int x, int y) {
 	cout << SelectedMap << "\n";
 }
 
-void init_de_TexturaSelector(GLuint &id, char* nombre)
-{
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	loadImageFile(nombre);
-}
 
 void onKeyMainSelector(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
@@ -103,9 +97,9 @@ void inicializarVectorFicheros() {
 }
 
 void MapSelectorState::Init(StateEngine* engine) {
-	init_de_TexturaSelector(textura_fondoSelector, "./textures/SelectorMapa/Fondo.jpg");
-	init_de_TexturaSelector(textura_Soporte, "./textures/SelectorMapa/Soporte.jpg");
-	init_de_TexturaSelector(textura_Flecha, "./textures/SelectorMapa/Arrow.png");
+	inicializarTextura(textura_fondoSelector, "./textures/SelectorMapa/Fondo.jpg");
+	inicializarTextura(textura_Soporte, "./textures/SelectorMapa/Soporte.jpg");
+	inicializarTextura(textura_Flecha, "./textures/SelectorMapa/Arrow.png");
 	engineSelector = engine;
 
 	inicializarVectorFicheros();
@@ -152,12 +146,12 @@ void backgroundSelector() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -1.0,-1.0,0.0 };
-	GLfloat v1[3] = { 1.0,-1.0,0.0 };
-	GLfloat v3[3] = { -1.0,1.0,0.0 };
-	GLfloat v2[3] = { 1.0,1.0,0.0 };
+	Point3D v0( -1.0,-1.0,0.0 );
+	Point3D v1( 1.0,-1.0,0.0 );
+	Point3D v3( -1.0,1.0,0.0 );
+	Point3D v2( 1.0,1.0,0.0 );
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 }
@@ -171,12 +165,12 @@ void Soporte() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.4,-0.8,0.0 };
-	GLfloat v1[3] = { 0.4,-0.8,0.0 };
-	GLfloat v3[3] = { -0.4,0.8,0.0 };
-	GLfloat v2[3] = { 0.4,0.8,0.0 };
+	Point3D v0( -0.4,-0.8,0.0 );
+	Point3D v1( 0.4,-0.8,0.0 );
+	Point3D v3( -0.4,0.8,0.0 );
+	Point3D v2( 0.4,0.8,0.0 );
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 }
@@ -194,12 +188,12 @@ void flechas() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.6,0.8,0.0 };
-	GLfloat v1[3] = { -0.4,0.8,0.0 };
-	GLfloat v3[3] = { -0.6,0.6,0.0 };
-	GLfloat v2[3] = { -0.4,0.6,0.0 };
+	Point3D v0( -0.6,0.8,0.0 );
+	Point3D v1( -0.4,0.8,0.0 );
+	Point3D v3( -0.6,0.6,0.0 );
+	Point3D v2( -0.4,0.6,0.0 );
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 
@@ -207,7 +201,7 @@ void flechas() {
 
 	glTranslatef(-1.0, 0, 0);
 	glRotatef(180, 0, 0, 1);
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 	glPopMatrix();
 
@@ -217,7 +211,7 @@ void flechas() {
 }
 
 /*
-TODO dibujar la lista de mapas cargados, dibujando 8 mapas a la vez y una vez llegemos al octavo dibujar los siguientes 8, apoyandose en la variable de seleccion.
+dibuja la lista de mapas cargados, dibujando 8 mapas a la vez y una vez llegemos al octavo dibujar los siguientes 8, apoyandose en la variable de seleccion.
 */
 void mapasCargados() {
 

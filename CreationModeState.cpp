@@ -4,8 +4,9 @@
 #include "OptionsMenuState.h"
 #include "MapSelectorState.h"
 #include "MainMenuState.h"
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h"
+#include "Entorno.h"
 #include <iostream> // Biblioteca de entrada salida
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
@@ -101,12 +102,7 @@ BOOLEAN direccion=true;
 
 
 
-void init_de_Textura(GLuint &id, char* nombre)
-{
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	loadImageFile(nombre);
-}
+
 
 
 
@@ -654,35 +650,37 @@ void CreationModeState::Init(StateEngine* engine) {
 	glutSetWindowTitle("Creador de Circuitos: Modo Creacion");
 
 	//inicializamos la camara con los valores por defecto.
-	camaraflotante = Camera();
+
+	glm::vec3 posicion_inicial = { 0,5,10 };
+	camaraflotante = Camera(posicion_inicial);
 
 	pausa = false;
 	iluminacion();
 
 	//Texturas
-	init_de_Textura(textura_carretera, "./textures/carretera.jpg");
-	init_de_Textura(textura_carreteraLado, "./textures/carreteralado.jpg");
-	init_de_Textura(textura_fondo, "./textures/fondo.jpg");
-	init_de_Textura(textura_nukacola, "./textures/nukacola.jpg");
-	init_de_Textura(textura_metal, "./textures/metal.jpg");
-	init_de_Textura(textura_slurm, "./textures/slurm.jpg");
-	init_de_Textura(textura_sonic, "./textures/sonic.jpg");
-	init_de_Textura(textura_hierba, "./textures/hierba.jpg");
-	init_de_Textura(textura_panel_trasero, "./textures/paneltrasero.jpg");
-	init_de_Textura(textura_cielonoche, "./textures/cielonoche.jpg");
-	init_de_Textura(textura_cielodia, "./textures/cielodia.jpg");
-	init_de_Textura(textura_victoria, "./textures/victory.PNG");
-	init_de_Textura(textura_velocimetro, "./textures/velocimetro.PNG");
-	init_de_Textura(textura_aguja, "./textures/aguja.jpg");
-	init_de_Textura(textura_bandera1, "./textures/bandera1.PNG");
-	init_de_Textura(textura_bandera2, "./textures/bandera2.PNG");
-	init_de_Textura(textura_bandera3, "./textures/bandera3.PNG");
-	init_de_Textura(textura_goal, "./textures/goal.PNG");
-	init_de_Textura(textura_start, "./textures/start.PNG");
-	init_de_Textura(textura_coche, "./textures/coche.PNG");
-	init_de_Textura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
-	init_de_Textura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
-	init_de_Textura(textura_mesa, "./textures/madera.png");
+	inicializarTextura(textura_carretera, "./textures/carretera.jpg");
+	inicializarTextura(textura_carreteraLado, "./textures/carreteralado.jpg");
+	inicializarTextura(textura_fondo, "./textures/fondo.jpg");
+	inicializarTextura(textura_nukacola, "./textures/nukacola.jpg");
+	inicializarTextura(textura_metal, "./textures/metal.jpg");
+	inicializarTextura(textura_slurm, "./textures/slurm.jpg");
+	inicializarTextura(textura_sonic, "./textures/sonic.jpg");
+	inicializarTextura(textura_hierba, "./textures/hierba.jpg");
+	inicializarTextura(textura_panel_trasero, "./textures/paneltrasero.jpg");
+	inicializarTextura(textura_cielonoche, "./textures/cielonoche.jpg");
+	inicializarTextura(textura_cielodia, "./textures/cielodia.jpg");
+	inicializarTextura(textura_victoria, "./textures/victory.PNG");
+	inicializarTextura(textura_velocimetro, "./textures/velocimetro.PNG");
+	inicializarTextura(textura_aguja, "./textures/aguja.jpg");
+	inicializarTextura(textura_bandera1, "./textures/bandera1.PNG");
+	inicializarTextura(textura_bandera2, "./textures/bandera2.PNG");
+	inicializarTextura(textura_bandera3, "./textures/bandera3.PNG");
+	inicializarTextura(textura_goal, "./textures/goal.PNG");
+	inicializarTextura(textura_start, "./textures/start.PNG");
+	inicializarTextura(textura_coche, "./textures/coche.PNG");
+	inicializarTextura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
+	inicializarTextura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
+	inicializarTextura(textura_mesa, "./textures/madera.png");
 }
 
 //Limpiar texturas etc
@@ -1065,13 +1063,13 @@ void botonesPausa() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.6,0.2,0.0 };
-	GLfloat v1[3] = { 0.6,0.2,0.0 };
-	GLfloat v3[3] = { -0.6,0.0,0.0 };
-	GLfloat v2[3] = { 0.6,0.0,0.0 };
+	Point3D v0( -0.6,0.2,0.0 );
+	Point3D v1( 0.6,0.2,0.0 );
+	Point3D v3( -0.6,0.0,0.0 );
+	Point3D v2( 0.6,0.0,0.0 );
 
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 	if (ButtonPausa == 1) {
@@ -1089,7 +1087,7 @@ void botonesPausa() {
 	v2[1] = -0.3;
 	v3[1] = -0.3;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 
@@ -1108,7 +1106,7 @@ void botonesPausa() {
 	v2[1] = -0.6;
 	v3[1] = -0.6;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 	if (ButtonPausa == 3) {
@@ -1126,7 +1124,7 @@ void botonesPausa() {
 	v2[1] = -0.9;
 	v3[1] = -0.9;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 
@@ -1219,7 +1217,7 @@ void dibujoCircuito() {
 
 
 
-	Mesa().draw(textura_mesa);
+	Entorno(resolucion,1).draw(textura_mesa,200,150,20);
 
 
 

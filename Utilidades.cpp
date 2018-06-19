@@ -1,4 +1,5 @@
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
+
 
 void planoXY(int resolucion)
 // resolucion: numero de divisiones del lado (>0)
@@ -104,19 +105,19 @@ void quad(GLfloat v0[3], GLfloat v1[3], GLfloat v2[3], GLfloat v3[3], int M, int
 		glEnd();
 	}
 }
-void quadtex(GLfloat v0[3], GLfloat v1[3], GLfloat v2[3], GLfloat v3[3],
+void quadtex(Point3D v0, Point3D v1, Point3D v2, Point3D v3,
 	GLfloat smin, GLfloat smax, GLfloat tmin, GLfloat tmax,
 	int M, int N)
 	// Dibuja un cuadrilatero con resolucion MxN con normales y coordenadas de textura
 {
 	if (M<1) M = 1; if (N<1) N = 1;	// Resolucion minima
-	GLfloat ai[3], ci[3], bj[3], dj[3], p0[3], p1[3];
+	Point3D ai, ci, bj, dj, p0, p1;
 	// calculo de la normal (v1-v0)x(v3-v0) unitaria 
-	GLfloat v01[] = { v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2] };
-	GLfloat v03[] = { v3[0] - v0[0], v3[1] - v0[1], v3[2] - v0[2] };
-	GLfloat normal[] = { v01[1] * v03[2] - v01[2] * v03[1] ,
-		v01[2] * v03[0] - v01[0] * v03[2] ,
-		v01[0] * v03[1] - v01[1] * v03[0] };
+	Point3D v01( v1.x - v0.x, v1.y - v0.y, v1.z - v0.z );
+	Point3D v03( v3.x - v0.x, v3.y - v0.y, v3.z - v0.z );
+	Point3D normal(v01.y * v03.z - v01.z * v03.y ,
+		v01.z * v03.x - v01.x * v03.z ,
+		v01.x * v03.y - v01.y * v03.x );
 	float norma = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 	glNormal3f(normal[0] / norma, normal[1] / norma, normal[2] / norma);
 	// ai: punto sobre el segmento v0v1, bj: v1v2, ci: v3v2, dj: v0v3
@@ -333,4 +334,11 @@ void texturarFondo()
 	glMatrixMode(GL_MODELVIEW);
 
 	glPopAttrib();
+}
+
+void inicializarTextura(GLuint &id, char* nombre)
+{
+	glGenTextures(1, &id);
+	glBindTexture(GL_TEXTURE_2D, id);
+	loadImageFile(nombre);
 }

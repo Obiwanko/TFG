@@ -18,7 +18,7 @@ Dependencias:
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath> // Biblioteca matematica de C
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include <vector>
 
 // Definicion de los tipos de movimientos disponibles a realizar con el teclado, de esta forma es mas sencillo llamarlos desde el main de la aplicacion

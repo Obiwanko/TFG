@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
 #include "MainMenuState.h" //Encabezado donde queda definida la clase del menu principal
 #include <glm/glm.hpp>
@@ -128,35 +128,6 @@ void quads(GLfloat v0[], GLfloat v1[], GLfloat v2[], GLfloat v3[], GLint N, GLin
 			glEnd();
 		}
 	}
-}
-/*
-En esta funcion utilizaremos la funcion quads para crear una densidad de quads/metro consistente para todo el circuito
-*/
-void quadsEnCuadradosPorMetro(GLfloat v0[], GLfloat v1[], GLfloat v2[], GLfloat v3[], GLint cuadradosPorMetro) {
-	float distancia_horizontal = sqrt((v0[0] - v1[0])*(v0[0] - v1[0]) + (v0[2] - v1[2])*(v0[2] - v1[2]));
-	float distancia_vertical = sqrt((v0[0] - v3[0])*(v0[0] - v3[0]) + (v0[2] - v3[2])*(v0[2] - v3[2]));
-	//quads(v0, v1, v2, v3, (int)distancia_horizontal *cuadradosPorMetro, (int)distancia_vertical* cuadradosPorMetro);
-	/*
-	v0------v1
-	|		 |
-	|		 |
-	v3------v2
-	*/
-	quadtex(v3, v2, v1, v0, 0.0, 1.0, 0.0, 1.0, (int)distancia_horizontal *cuadradosPorMetro, (int)distancia_vertical* cuadradosPorMetro);
-}
-
-void quadsEnCuadradosPorMetroTex(GLfloat v0[], GLfloat v1[], GLfloat v2[], GLfloat v3[], GLint cuadradosPorMetro, GLint repX, GLint repY) {
-	float distancia_horizontal = sqrt((v0[0] - v1[0])*(v0[0] - v1[0]) + (v0[2] - v1[2])*(v0[2] - v1[2]));
-	float distancia_vertical = sqrt((v0[0] - v3[0])*(v0[0] - v3[0]) + (v0[2] - v3[2])*(v0[2] - v3[2]));
-	//quads(v0, v1, v2, v3, (int)distancia_horizontal *cuadradosPorMetro, (int)distancia_vertical* cuadradosPorMetro);
-	/*
-	v0------v1
-	|		 |
-	|		 |
-	v3------v2
-	*/
-	//v1, v0, v3, v2,
-	quadtex( v2,v3, v0, v1, 0.0, repX, 0.0, repY, (int)distancia_horizontal *cuadradosPorMetro, (int)distancia_vertical* cuadradosPorMetro);
 }
 
 
@@ -477,7 +448,7 @@ void reshape(GLint w, GLint h)
 	glLoadIdentity();
 	float razon = (float)w / h;
 	/* CAMARA PERSPECTIVA */
-	gluPerspective(120, razon, 0.1, 400);
+	gluPerspective(120, razon, 0.1, 510);
 }
 
 

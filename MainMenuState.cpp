@@ -4,7 +4,7 @@
 #include "CreationModeState.h"
 #include "OptionsMenuState.h"
 #include "MapSelectorState.h"
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h"
 #include <ctime>
 #include <string>
@@ -48,12 +48,6 @@ string fileMap ="";
 
 	}
 
-	void init_de_TexturaMainMenu(GLuint &id, char* nombre)
-	{
-		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
-		loadImageFile(nombre);
-	}
 
 	void onKeyMainMenu(unsigned char tecla, int x, int y)
 		// Funcion de atencion al teclado
@@ -97,10 +91,10 @@ string fileMap ="";
 
 
 	void MainMenuState::Init(StateEngine* engine) {
-		init_de_TexturaMainMenu(textura_BotonSeleccionado, "./textures/MainMenu/ButtonSelected.jpg");
-		init_de_TexturaMainMenu(textura_fondoMainMenu, "./textures/MainMenu/Background.jpg");
-		init_de_TexturaMainMenu(textura_BotonSinSeleccionar, "./textures/MainMenu/ButtonNotSelected.jpg");
-		init_de_TexturaMainMenu(textura_Titulo, "./textures/MainMenu/titulo.png");
+		inicializarTextura(textura_BotonSeleccionado, "./textures/MainMenu/ButtonSelected.jpg");
+		inicializarTextura(textura_fondoMainMenu, "./textures/MainMenu/Background.jpg");
+		inicializarTextura(textura_BotonSinSeleccionar, "./textures/MainMenu/ButtonNotSelected.jpg");
+		inicializarTextura(textura_Titulo, "./textures/MainMenu/titulo.png");
 		engineMenu = engine;
 		glutSpecialFunc(onSpecialKeyMainMenu);// Alta de la funcion de atencion al teclado especial
 		glutKeyboardFunc(onKeyMainMenu);// Alta de la funcion de atencion al teclado 
@@ -142,12 +136,12 @@ string fileMap ="";
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-		GLfloat v0[3] = { -1.0,-1.0,0.0 };
-		GLfloat v1[3] = { 1.0,-1.0,0.0 };
-		GLfloat v3[3] = { -1.0,1.0,0.0 };
-		GLfloat v2[3] = { 1.0,1.0,0.0 };
+		Point3D v0(-1.0, -1.0, 0.0);
+		Point3D v1(1.0, -1.0, 0.0);
+		Point3D v3(-1.0, 1.0, 0.0);
+		Point3D v2(1.0, 1.0, 0.0);
 
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 	}
@@ -161,12 +155,12 @@ string fileMap ="";
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-		GLfloat v0[3] = { -0.35,0.2,0.0 };
-		GLfloat v1[3] = { 0.35,0.2,0.0 };
-		GLfloat v3[3] = { -0.35,0.9,0.0 };
-		GLfloat v2[3] = { 0.35,0.9,0.0 };
+		Point3D v0( -0.35,0.2,0.0 );
+		Point3D v1( 0.35,0.2,0.0 );
+		Point3D v3(-0.35,0.9,0.0);
+		Point3D v2(0.35,0.9,0.0 );
 
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 	}
@@ -187,13 +181,13 @@ string fileMap ="";
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-		GLfloat v0[3] = { -0.6,0.2,0.0 };
-		GLfloat v1[3] = { 0.6,0.2,0.0 };
-		GLfloat v3[3] = { -0.6,0.0,0.0 };
-		GLfloat v2[3] = { 0.6,0.0,0.0 };
+		Point3D v0( -0.6,0.2,0.0 );
+		Point3D v1( 0.6,0.2,0.0 );
+		Point3D v3( -0.6,0.0,0.0 );
+		Point3D v2( 0.6,0.0,0.0);
 		
 		
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 		if (Button == 1) {
@@ -211,7 +205,7 @@ string fileMap ="";
 		v2[1] = -0.3;
 		v3[1] = -0.3;
 
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 
@@ -230,7 +224,7 @@ string fileMap ="";
 		v2[1] = -0.6;
 		v3[1] = -0.6;
 
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 		if (Button == 3) {
@@ -248,7 +242,7 @@ string fileMap ="";
 		v2[1] = -0.9;
 		v3[1] = -0.9;
 
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 
 

@@ -4,7 +4,7 @@
 #include "CreationModeState.h"
 #include "OptionsMenuState.h"
 #include "MapSelectorState.h"
-#include <Utilidades.h> // Biblioteca de Utilidades
+#include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h"
 #include <ctime>
 #include <string>
@@ -86,14 +86,6 @@ void onSpecialKeyOptionsMenu(int specialKey, int x, int y) {
 
 }
 
-void init_de_TexturaOptionsMenu(GLuint &id, char* nombre)
-{
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	loadImageFile(nombre);
-}
-
-
 
 void guardarOpciones() {
 	std::ofstream file;
@@ -164,14 +156,14 @@ void onKeyOptionsMenu(unsigned char tecla, int x, int y)
 
 
 void OptionsMenuState::Init(StateEngine* engine) {
-	init_de_TexturaOptionsMenu(textura_botonSeleccionadoResolucion, "./textures/Options/ButtonSelected.png");
-	init_de_TexturaOptionsMenu(textura_botonSinSeleccionarResolucion, "./textures/Options/Button.png");
-	init_de_TexturaOptionsMenu(textura_noCheck, "./textures/Options/noCheck.png");
-	init_de_TexturaOptionsMenu(textura_Check, "./textures/Options/Check.png");
-	init_de_TexturaOptionsMenu(textura_noCheckSelected, "./textures/Options/noCheckSelected.png");
-	init_de_TexturaOptionsMenu(textura_CheckSelected, "./textures/Options/CheckSelected.png");
-	init_de_TexturaOptionsMenu(textura_fondoOpciones, "./textures/Options/Background.jpg");
-	init_de_TexturaOptionsMenu(textura_flechita, "./textures/Options/Flecha.png");
+	inicializarTextura(textura_botonSeleccionadoResolucion, "./textures/Options/ButtonSelected.png");
+	inicializarTextura(textura_botonSinSeleccionarResolucion, "./textures/Options/Button.png");
+	inicializarTextura(textura_noCheck, "./textures/Options/noCheck.png");
+	inicializarTextura(textura_Check, "./textures/Options/Check.png");
+	inicializarTextura(textura_noCheckSelected, "./textures/Options/noCheckSelected.png");
+	inicializarTextura(textura_CheckSelected, "./textures/Options/CheckSelected.png");
+	inicializarTextura(textura_fondoOpciones, "./textures/Options/Background.jpg");
+	inicializarTextura(textura_flechita, "./textures/Options/Flecha.png");
 	engineOptions = engine;
 	glutSpecialFunc(onSpecialKeyOptionsMenu);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeyOptionsMenu);// Alta de la funcion de atencion al teclado 
@@ -213,12 +205,12 @@ void backgroundOpciones() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -1.0,-1.0,0.0 };
-	GLfloat v1[3] = { 1.0,-1.0,0.0 };
-	GLfloat v3[3] = { -1.0,1.0,0.0 };
-	GLfloat v2[3] = { 1.0,1.0,0.0 };
+	Point3D v0( -1.0,-1.0,0.0 );
+	Point3D v1( 1.0,-1.0,0.0 );
+	Point3D v3( -1.0,1.0,0.0 );
+	Point3D v2( 1.0,1.0,0.0 );
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 }
@@ -239,13 +231,13 @@ void botonesOpciones() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.7,0.4,0.0 };
-	GLfloat v1[3] = { -0.3,0.4,0.0 };
-	GLfloat v3[3] = { -0.7,0.2,0.0 };
-	GLfloat v2[3] = { -0.3,0.2,0.0 };
+	Point3D v0( -0.7,0.4,0.0 );
+	Point3D v1( -0.3,0.4,0.0 );
+	Point3D v3( -0.7,0.2,0.0 );
+	Point3D v2( -0.3,0.2,0.0 );
 
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 	if (HorizontalButton == 1 && VerticalButton == 0) {
@@ -263,7 +255,7 @@ void botonesOpciones() {
 	v3[0] = -0.2;
 	v2[0] = 0.2;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 
@@ -282,7 +274,7 @@ void botonesOpciones() {
 	v3[0] = 0.3;
 	v2[0] = 0.7;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 }
@@ -316,13 +308,13 @@ void checks() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.4,-0.1,0.0 };
-	GLfloat v1[3] = { -0.2,-0.1,0.0 };
-	GLfloat v3[3] = { -0.4,-0.3,0.0 };
-	GLfloat v2[3] = { -0.2,-0.3,0.0 };
+	Point3D v0( -0.4,-0.1,0.0 );
+	Point3D v1( -0.2,-0.1,0.0 );
+	Point3D v3( -0.4,-0.3,0.0 );
+	Point3D v2( -0.2,-0.3,0.0 );
 
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
 
@@ -356,7 +348,7 @@ void checks() {
 	v3[0] = 0.2;
 	v2[0] = 0.4;
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 }
 
@@ -393,13 +385,13 @@ void salir() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	GLfloat v0[3] = { -0.3,-0.4,0.0 };
-	GLfloat v1[3] = { 0.3,-0.4,0.0 };
-	GLfloat v3[3] = { -0.3,-0.6,0.0 };
-	GLfloat v2[3] = { 0.3,-0.6,0.0 };
+	Point3D v0( -0.3,-0.4,0.0 );
+	Point3D v1( 0.3,-0.4,0.0 );
+	Point3D v3( -0.3,-0.6,0.0 );
+	Point3D v2( 0.3,-0.6,0.0 );
 
 
-	quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 }
 
@@ -410,12 +402,14 @@ void flecha() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	GLfloat v0[3] = { -0.55,0.4,0.0 };
-	GLfloat v1[3] = { -0.45,0.4,0.0 };
-	GLfloat v3[3] = { -0.55,0.5,0.0 };
-	GLfloat v2[3] = { -0.45,0.5,0.0 };
+
+	Point3D v0( -0.55,0.4,0.0 );
+	Point3D v1( -0.45,0.4,0.0 );
+	Point3D v3( -0.55,0.5,0.0 );
+	Point3D v2( -0.45,0.5,0.0 );
+
 	if (graficos == 1) {
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 	}
 	else if (graficos == 2) {
@@ -423,7 +417,7 @@ void flecha() {
 		v1[0] = 0.05;
 		v3[0] = -0.05;
 		v2[0] = 0.05;
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 	}
 	else {
@@ -431,7 +425,7 @@ void flecha() {
 		v1[0] = 0.55;
 		v3[0] = 0.45;
 		v2[0] = 0.55;
-		quadtex((GLfloat*)v0, (GLfloat*)v1, (GLfloat*)v2, (GLfloat*)v3,
+		quadtex(v0, v1, v2, v3,
 			0, 1, 0, 1, 1, 1);
 	}
 
