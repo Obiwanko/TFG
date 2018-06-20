@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
+
 #include "Utilidades.h" // Biblioteca de Utilidades
 #include "Globals.h" // Encabezado donde se quedaran definidas las variables globales.
 #include "MainMenuState.h" //Encabezado donde queda definida la clase del menu principal
@@ -81,7 +82,6 @@ BOOLEAN trampas = TRUE;
 StateEngine engine;
 
 //vector donde se guardaran las piezas colocadas
-std::vector<Tramo*> vectorTramosEnMemoria;
 
 //Declaracion variable de la posicion del ultimo tramo.
 Point3D posicionUltimoTramo = Point3D(0,0,0);

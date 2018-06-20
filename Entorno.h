@@ -9,11 +9,12 @@ protected:
 	int _res;								// resolucion
 	int _texX;								// nº rep textura
 	const int _id = 1;
-	
+
+
 	void drawDesk(GLuint textura,GLfloat ancho,GLfloat largo, GLfloat profundo);
 
 
-	void drawRoom();
+	void drawRoom(GLuint texturasuelo, GLuint texturaParednegX, GLuint texturaParedposX, GLuint texturaParednegZ, GLuint texturaParedposZ, GLuint texturaTecho);
 
 public:
 	//valores por defecto
@@ -24,12 +25,13 @@ public:
 	{
 		_res = res;
 		_texX = repitetex;
+
 	};
 	
 	/*
 	funcion de dibujar el entorno completo, recibe como parametros las longitudes de la mesa ya que la habitacion será fija
 	*/
-	void draw(GLuint texturaMesa, GLfloat ancho, GLfloat largo, GLfloat profundo);
+	void draw(GLuint texturaMesa, GLfloat ancho, GLfloat largo, GLfloat profundo, GLuint texturasuelo,GLuint texturaParednegX, GLuint texturaParedposX, GLuint texturaParednegZ, GLuint texturaParedposZ, GLuint texturaTecho);
 
 
 };

@@ -12,8 +12,7 @@ Dependencias:
 ***************************************************/
 #ifndef GLOBALS_H
 #define GLOBALS_H
-#include "Tramos.h"
-#include "Camera.h" // Encabezado donde esta definida la camara.
+#include "Point3D.h"
 
 /*
 Variables que indican los diferentes directorios
@@ -69,10 +68,6 @@ Variables de atencion a la lista de tramos que tenenemos actualmente en memoria
 //total de piezas diferentes disponibles
 extern GLint const totalTramos;
 
-//Vector de Tramos cargados actualmente en memoria
-extern std::vector<Tramo*> vectorTramosEnMemoria;
 
-//Variables de la posicion actual donde se colocará el ultimo tramo.
-//extern Point3D posicionUltimoTramo;
 
 #endif

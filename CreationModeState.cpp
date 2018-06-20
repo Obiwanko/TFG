@@ -1,6 +1,8 @@
 #include "StateEngine.h"
 #include "State.h"
 #include "CreationModeState.h"
+#include "Camera.h"
+#include "Tramos.h"
 #include "OptionsMenuState.h"
 #include "MapSelectorState.h"
 #include "MainMenuState.h"
@@ -11,6 +13,8 @@
 #include <fstream>
 #include <sstream> // Biblioteca de manejo de strings
 #include <cmath> // Biblioteca matematica de C
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 CreationModeState CreationModeState::_CreationModeState;
 //Engine para poder realizar los cambios.
@@ -79,6 +83,12 @@ GLuint textura_start;
 GLuint textura_coche;
 GLuint textura_carreteraLado;
 GLuint textura_mesa;
+GLuint texturaSuelo;
+GLuint texturaTecho;
+GLuint texturaParedposX;
+GLuint texturaParednegX;
+GLuint texturaParedposZ;
+GLuint texturaParednegZ;
 
 //boleanos de click izquierdo/click derecho
 
@@ -92,17 +102,17 @@ GLuint textura_BotonSeleccionadoPausa;
 GLuint textura_BotonSinSeleccionarPausa;
 
 //variables de uso durante la construccion de las piezas
-GLfloat LongitudoRadio=2;
-GLfloat AnchoCarretera=5;
+GLfloat LongitudoRadio=5;
+GLfloat AnchoCarretera=2;
 GLfloat AngulosGrados=10;
 GLfloat Inclinacion=1;
-GLfloat Parametro_adicional=1;
+GLfloat Separacion=AnchoCarretera;
+GLfloat Ondulacion = 2;
+GLfloat Potencia = 0.5;
 BOOLEAN direccion=true;
 
-
-
-
-
+glm::mat4 myMatrix(1);
+std::vector<Tramo*> vectorTramosEnMemoria;
 
 
 
@@ -220,25 +230,32 @@ void addTramoToVector(int id, int posID, string line) {
 	parameters[i] = stof(parametros.substr(aux, parametros.length() - aux));
 	switch (id) {
 	case 1:
-		vectorTramosEnMemoria.push_back(new Tramo(parameters[0], parameters[1], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Tramo(parameters[0], parameters[1], myMatrix, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoCurvo(parameters[0], parameters[1], parameters[2], myMatrix, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 3:
-		vectorTramosEnMemoria.push_back(new Rampa(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Rampa(parameters[0], parameters[1], parameters[2], myMatrix,resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 4:
-		vectorTramosEnMemoria.push_back(new RampaCurva(parameters[0], parameters[1], parameters[2], parameters[3], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new RampaCurva(parameters[0], parameters[1], parameters[2], parameters[3], myMatrix, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(parameters[0], parameters[1], parameters[2], myMatrix, parameters[3], parameters[4], resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(parameters[0], parameters[1], parameters[2], myMatrix,parameters[3], parameters[4], resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 7:
-		vectorTramosEnMemoria.push_back(new Looping(parameters[0], parameters[1], parameters[2], resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Looping(parameters[0], parameters[1], parameters[2], myMatrix, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	default:
 		break;
@@ -258,7 +275,6 @@ void cargarCircuitoFromFile() {
 			auto pos = line.find_first_of(';');
 			string id = line.substr(0, pos);
 			addTramoToVector(std::stoi(id), pos, line);
-			//vectorTramosEnMemoria.push_back(new Student{ std::string{ line, 0, pos },std::string{ line, pos + 1 } });
 		}
 	}
 
@@ -292,6 +308,7 @@ void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
 	case GLUT_KEY_LEFT:
 		if (!seleccionado) {
 			tramoactual = hudNumeroSelector(tramoactual - 1);
+
 		}
 		break;
 	case GLUT_KEY_RIGHT:
@@ -387,7 +404,6 @@ void onSpecialKeyPausa(int specialKey, int x, int y) {
 
 
 void vaciarTramosEnMemoria() {
-	//while (!vectorTramosEnMemoria.empty())
 		vectorTramosEnMemoria.clear();
 }
 
@@ -429,11 +445,14 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 }
 
 void resetVariables() {
-	LongitudoRadio = 2;
-	AnchoCarretera = 5;
-	AngulosGrados = 10;
+
+	LongitudoRadio = 5;
+	// No actualizamos AnchoCarretera para que sea mas sencillo para el usuario continua con el mismo ancho
+	AngulosGrados = 90;
 	Inclinacion = 1;
-	Parametro_adicional = 1;
+	Potencia = 0.5;
+	Ondulacion = 2;
+	Separacion = AnchoCarretera;
 	direccion = true;
 }
 
@@ -441,41 +460,53 @@ void resetVariables() {
 void añade_tramo(GLint identificador) {
 	// sumamos +1 ya que los arrays empiezan por 0
 	GLfloat angulo = 0;
+	GLfloat onda = 0;
 	if (direccion) {
 		angulo = -AngulosGrados;
+		onda = -Ondulacion;
 	}
 	else {
 		angulo = AngulosGrados;
+		onda = Ondulacion;
 	}
+
 	//TODO añadir la variables que utilizaré en los globals
 	switch (identificador + 1) {
 	case 1:
-		vectorTramosEnMemoria.push_back(new Tramo(AnchoCarretera, LongitudoRadio, resolucion, repeticionTex));
+
+		vectorTramosEnMemoria.push_back(new Tramo(AnchoCarretera, LongitudoRadio, myMatrix,resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 2:
-		vectorTramosEnMemoria.push_back(new TramoCurvo(AnchoCarretera, LongitudoRadio, angulo, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoCurvo(AnchoCarretera, LongitudoRadio, angulo, myMatrix, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 3:
-		vectorTramosEnMemoria.push_back(new Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, myMatrix,resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 4:
-		vectorTramosEnMemoria.push_back(new RampaCurva(AnchoCarretera, LongitudoRadio,angulo, Inclinacion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new RampaCurva(AnchoCarretera, LongitudoRadio,angulo, Inclinacion, myMatrix,resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 5:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, onda, myMatrix, Potencia, direccion, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 6:
-		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, onda, myMatrix, Potencia, direccion, resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	case 7:
 		GLfloat separacion;
 		if (direccion) {
-			separacion = -Parametro_adicional;
+			separacion = -Separacion;
 		}
 		else {
-			separacion = Parametro_adicional;
+			separacion = Separacion;
 		}
-		vectorTramosEnMemoria.push_back(new Looping(AnchoCarretera, separacion, LongitudoRadio, resolucion, repeticionTex));
+		vectorTramosEnMemoria.push_back(new Looping(AnchoCarretera, separacion, LongitudoRadio, myMatrix,resolucion, repeticionTex));
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 		break;
 	}
 	resetVariables();
@@ -483,47 +514,50 @@ void añade_tramo(GLint identificador) {
 
 void dibuja_tramo_actual(GLint identificador) {
 	GLfloat angulo = 0;
+	GLfloat onda = 0;
 	if (direccion) {
 		angulo = -AngulosGrados;
+		onda = -Ondulacion;
 	}
 	else {
 		angulo = AngulosGrados;
+		onda = Ondulacion;
 	}
+
 	
 	// sumamos +1 ya que los arrays empiezan por 0
 	switch (identificador + 1) {
 	case 1:
-		Tramo(AnchoCarretera, LongitudoRadio, resolucion, repeticionTex).draw(textura_carretera,textura_carreteraLado);
+		Tramo(AnchoCarretera, LongitudoRadio, myMatrix, resolucion, repeticionTex).draw(textura_carretera,textura_carreteraLado);
 		break;
 	case 2:
 
-		TramoCurvo(AnchoCarretera, LongitudoRadio, angulo, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoCurvo(AnchoCarretera, LongitudoRadio, angulo,myMatrix, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 3:
-		Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		Rampa(AnchoCarretera, LongitudoRadio, Inclinacion, myMatrix,resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 4:
-		RampaCurva(AnchoCarretera, LongitudoRadio, angulo, Inclinacion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		RampaCurva(AnchoCarretera, LongitudoRadio, angulo, Inclinacion, myMatrix,resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 5:
-		TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoSinuosoHorizontal(AnchoCarretera, LongitudoRadio, onda, myMatrix, Potencia, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 6:
-		TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, angulo, Parametro_adicional, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoSinuosoVertical(AnchoCarretera, LongitudoRadio, onda, myMatrix, Potencia, direccion, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 7:
 		GLfloat separacion;
 		if (direccion) {
-			separacion = -Parametro_adicional;
+			separacion = -Separacion;
 		}
 		else {
-			separacion = Parametro_adicional;
+			separacion = Separacion;
 		}
-		Looping(AnchoCarretera, separacion, LongitudoRadio, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		Looping(AnchoCarretera, separacion, LongitudoRadio, myMatrix, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	}
 }
-
 
 
 void onKeyCreacion(unsigned char tecla, int x, int y)
@@ -550,13 +584,14 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		break;
 	case ' ':
 		//enfocamos a la ultima pieza colocada
-		//camaraflotante.LookLastPiece(posicionUltimoTramo.x, posicionUltimoTramo.y+10, posicionUltimoTramo.z);
+		camaraflotante.LookLastPiece(glm::vec3(myMatrix[3]).x, glm::vec3(myMatrix[3]).y, glm::vec3(myMatrix[3]).z);
 		break;
 	case 13:
 		if (seleccionado)
 		{
 			//si ya se habia seleccionado una pieza la dibujamos
 			añade_tramo(tramoactual);
+			cout << glm::to_string(vectorTramosEnMemoria.back()->getMatFinal()) << "\n";
 		}
 		else
 		{
@@ -571,6 +606,7 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
 			if (!vectorTramosEnMemoria.empty()) {
 				vectorTramosEnMemoria.pop_back();
+				myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
 			}
 		}
 		break;
@@ -590,10 +626,16 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		case 't':
 		case 'T':
 			LongitudoRadio += 0.1;
+			if (LongitudoRadio > 10) {
+				LongitudoRadio = 10;
+			}
 			break;
 		case 'g':
 		case 'G':
 			LongitudoRadio -= 0.1;
+			if (LongitudoRadio < 1) {
+				LongitudoRadio = 1;
+			}
 			break;
 		case 'r':
 		case 'R':
@@ -602,34 +644,78 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		case 'f':
 		case 'F':
 			AnchoCarretera -= 0.1;
+			if (AnchoCarretera < 1) {
+				AnchoCarretera = 1;
+			}
+			
 			break;
 		case 'h':
 		case 'H':
 			AnchoCarretera += 0.1;
+			if (AnchoCarretera > 10)
+				AnchoCarretera = 10;
 			break;
 		case 'j':
 		case 'J':
-			AngulosGrados -= 0.25;
+			AngulosGrados -= 0.5;
+			if (AngulosGrados < 0) {
+				AngulosGrados = 0;
+			}
+			
+			Ondulacion -= 0.2;
+			if (Ondulacion < 0) {
+				Ondulacion = 0;
+			}
 			break;
 		case 'k':
 		case 'K':
-			AngulosGrados += 0.25;
+			AngulosGrados += 0.5;
+			// no es valido que el angulo sea mayor de 359
+			if (AngulosGrados > 359) {
+				AngulosGrados = 359;
+			}
+
+			Ondulacion += 0.2;
+			if (Ondulacion > 30) {
+				Ondulacion = 30;
+			}
 			break;
 		case 'u':
 		case 'U':
 			Inclinacion -= 0.1;
+			if (Inclinacion < -1.5) {
+				Inclinacion = -1.5;
+				}
 			break;
 		case 'i':
 		case 'I':
 			Inclinacion += 0.1;
+			if (Inclinacion > 1.5) {
+				Inclinacion = 1.5;
+			}
 			break;
 		case 'o':
 		case 'O':
-			Parametro_adicional -= 0.1;
+			Separacion -= 0.1;
+			if (Separacion < AnchoCarretera)
+				Separacion = AnchoCarretera;
+			
+			Potencia -= 0.1;
+			if (Potencia < 0) {
+				Potencia = 0;
+			}
+
 			break;
 		case 'p':
 		case 'P':
-			Parametro_adicional += 0.1;
+			Separacion += 0.1;
+			if (Separacion > 20)
+				Separacion = 20;
+
+			Potencia -= 0.1;
+			if (Potencia >3) {
+				Potencia = 3;
+			}
 			break;
 		}
 	}
@@ -681,6 +767,13 @@ void CreationModeState::Init(StateEngine* engine) {
 	inicializarTextura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
 	inicializarTextura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
 	inicializarTextura(textura_mesa, "./textures/madera.png");
+	inicializarTextura(texturaSuelo, "./textures/room/negy.dds");
+	inicializarTextura(texturaTecho, "./textures/room/posy.dds");
+	inicializarTextura(texturaParedposX, "./textures/room/posx.dds");
+	inicializarTextura(texturaParednegX, "./textures/room/negx.dds");
+	inicializarTextura(texturaParedposZ, "./textures/room/posz.dds");
+	inicializarTextura(texturaParednegZ, "./textures/room/negz.dds");
+
 }
 
 //Limpiar texturas etc
@@ -788,18 +881,15 @@ void dibujarTramosEnLista() {
 void dibujarCircuitoEnMemoria()
 {
 
-
-
-
-
 	glPushMatrix();
 	{
 		dibujarTramosEnLista();
 
 		if (seleccionado) {
 			dibuja_tramo_actual(tramoactual);
-
 		}
+
+
 	}
 	glPopMatrix();
 
@@ -812,45 +902,45 @@ void dibuja_tramo_HUD(GLint identificador) {
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Tramo(0.05, 0.15, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		Tramo(0.05, 0.15,glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 2:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		TramoCurvo(0.05, 0.15, 90, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoCurvo(0.05, 0.15, 90, glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 3:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		Rampa(0.05, 0.10, 0.5, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		Rampa(0.05, 0.10, 0.5, glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 4:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
-		RampaCurva(0.05, 0.08, 90, 10, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		RampaCurva(0.05, 0.08, 90, 10, glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 5:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoHorizontal(5, 15, 2, 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoSinuosoHorizontal(5, 15, 2, glm::mat4(1), 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 6:
 		glRotatef(90, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 1, 0, 0);
 		glScalef(0.01, 0.01, 0.01);
-		TramoSinuosoVertical(5, 15, 2, 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		TramoSinuosoVertical(5, 15, 2, glm::mat4(1), 2, true, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 	case 7:
 		//glRotatef(-180, 1, 0, 0);
 		glRotatef(90, 0, 1, 0);
 		glRotatef(rotacion_pieza, 0, 1, 0);
-		Looping(0.05, 0.06, 0.08, resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
+		Looping(0.05, 0.06, 0.08, glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
 		//TODO añadir nuevas piezas conforme las vaya haciendo
 	}
@@ -988,18 +1078,15 @@ void hudElementPiezasVisibles() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// Z-Buffer
 	glDepthMask(GL_FALSE);
-
 	//derecho
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//Posible problema con la luz
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D); //habilitamos textura
-							 //glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR); //brillos por separado
-
-							 //Uso de las texturas
+	
+	//Uso de las texturas
 	glBindTexture(GL_TEXTURE_2D, textura_carretera);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1215,12 +1302,7 @@ void dibujoCircuito() {
 	camaraflotante.SetGluLookUp();
 	glPolygonMode(GL_FRONT, GL_LINE);
 
-
-
-	Entorno(resolucion,1).draw(textura_mesa,200,150,20);
-
-
-
+	Entorno(resolucion,1).draw(textura_mesa,200,150,20,texturaSuelo,texturaParednegX,texturaParedposX,texturaParednegZ,texturaParedposZ,texturaTecho);
 	dibujarCircuitoEnMemoria();
 
 	

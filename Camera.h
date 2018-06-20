@@ -1,11 +1,11 @@
 /***************************************************
 ISGI::Crcuito estatico
-Samuel Sáez', 2018 (v2.0)
+Samuel Sáez', 2018 
 
 Clases para el control de la camara que usaremos durante la construccion del circuito
 
 Clases:
-Camera: Sistema de camara libre tipo FPS(primera persona)
+Camera: Sistema de camara libre tipo FP(primera persona)
 
 Dependencias:
 +glm.hpp
@@ -77,8 +77,9 @@ public:
 	}
 
 	void LookLastPiece(float posX, float posY, float posZ) {
-		Position = glm::vec3(posX, posY, posZ);
-		Up.y = -1;
+		Position = glm::vec3(posX, posY+5, posZ);
+		Pitch = -89.0f; // miramos directamente hacia abajo
+		updateCameraVectors();
 	}
 
 	// Devuelve la matriz view la cual usaremos en el modelo MVP
@@ -160,7 +161,7 @@ private:
 	// Metodo para actualizar los vectores que mueven la camara
 	void updateCameraVectors()
 	{
-		// Calculate the new Front vector
+		// / Calculamos el vector Front
 		glm::vec3 front;
 		front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 		front.y = sin(glm::radians(Pitch));

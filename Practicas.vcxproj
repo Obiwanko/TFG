@@ -26,6 +26,7 @@
     <ClCompile Include="MapSelectorState.cpp" />
     <ClCompile Include="OptionsMenuState.cpp" />
     <ClCompile Include="StateEngine.cpp" />
+    <ClCompile Include="Tramos.cpp" />
     <ClCompile Include="Utilidades.cpp" />
   </ItemGroup>
   <ItemGroup>

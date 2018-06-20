@@ -143,7 +143,7 @@ void Entorno::drawDesk(GLuint textura, GLfloat ancho, GLfloat largo, GLfloat pro
 
 };
 
-void Entorno::drawRoom() {
+void Entorno::drawRoom(GLuint texturasuelo, GLuint texturaParednegX, GLuint texturaParedposX, GLuint texturaParednegZ, GLuint texturaParedposZ, GLuint texturaTecho) {
 
 	//aceptamos la posibilidad de cambiar el metodo mas adelante para que acepte estos valores por como parametros
 	GLfloat largo = 500;
@@ -156,21 +156,6 @@ void Entorno::drawRoom() {
 
 	GLfloat resXmetro = _res / max(largo, ancho);
 
-	GLuint texturaSuelo;
-	GLuint texturaTecho;
-	GLuint texturaParedposX;
-	GLuint texturaParednegX;
-	GLuint texturaParedposZ;
-	GLuint texturaParednegZ;
-
-	inicializarTextura(texturaSuelo, "./textures/room/negy.dds");
-	inicializarTextura(texturaTecho, "./textures/room/posy.dds");
-	inicializarTextura(texturaParedposX, "./textures/room/posx.dds");
-	inicializarTextura(texturaParednegX, "./textures/room/negx.dds");
-	inicializarTextura(texturaParedposZ, "./textures/room/posz.dds");
-	inicializarTextura(texturaParednegZ, "./textures/room/negz.dds");
-
-
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 
@@ -178,7 +163,7 @@ void Entorno::drawRoom() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D); //habilitamos textura
 
-	glBindTexture(GL_TEXTURE_2D, texturaSuelo);
+	glBindTexture(GL_TEXTURE_2D, texturasuelo);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -267,9 +252,9 @@ void Entorno::drawRoom() {
 
 }
 
-void Entorno::draw(GLuint texturaMesa, GLfloat ancho, GLfloat largo, GLfloat profundo) {
+void Entorno::draw(GLuint texturaMesa, GLfloat ancho, GLfloat largo, GLfloat profundo, GLuint texturasuelo, GLuint texturaParednegX, GLuint texturaParedposX, GLuint texturaParednegZ, GLuint texturaParedposZ, GLuint texturaTecho) {
 
-	drawRoom();
+	drawRoom(texturasuelo, texturaParednegX, texturaParedposX, texturaParednegZ, texturaParedposZ, texturaTecho);
 
 	drawDesk(texturaMesa,ancho,largo,profundo);
 
