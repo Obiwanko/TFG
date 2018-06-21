@@ -114,6 +114,10 @@ BOOLEAN direccion=true;
 glm::mat4 myMatrix(1);
 std::vector<Tramo*> vectorTramosEnMemoria;
 
+//variables de uso para la simulacion
+std::vector<Point3D> pathSimulacion;
+BOOLEAN startSimulacion = false;
+
 
 
 
@@ -378,9 +382,9 @@ Sencillo metodo para seguir la logica de la actualizacion del menu.
 */
 GLint actualizarButtonPausa(GLint button) {
 	if (button<0) {
-		button = 3;
+		button = 4;
 	}
-	else if (button == 4) {
+	else if (button == 5) {
 		button = 0;
 	}
 	return button;
@@ -407,6 +411,38 @@ void vaciarTramosEnMemoria() {
 		vectorTramosEnMemoria.clear();
 }
 
+/*
+Metodos de uso para simular el coche recorriendo el circuito
+*/
+
+void rellenaPath() {
+
+	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
+		
+		vectorTramosEnMemoria[i]->calcularPathPoints(pathSimulacion);
+	
+	}
+}
+
+void vaciaPath() {
+	pathSimulacion.clear();
+}
+
+void printPath() {
+
+	for (int i = 0; i < pathSimulacion.size(); i++) {
+
+		cout << pathSimulacion[i].x << " , " << pathSimulacion[i].y << " , " << pathSimulacion[i].z << " \n ";
+
+	}
+}
+
+void InitSimulation() {
+	rellenaPath();
+	printPath();
+	startSimulacion = true;
+}
+
 void onKeyPausa(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {	
@@ -415,19 +451,31 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 	case 13://se pulsa enter
 		switch (ButtonPausa)
 		{
-		case 0: //Reanudamos el modo creacion
+		case 0: //comenzamos la simulacion
+			if (!startSimulacion){
+				InitSimulation();
+			}
+				
+			else{
+				startSimulacion = !startSimulacion;
+				vaciaPath();
+			}
+				
+
+			break;
+		case 1: //Reanudamos el modo creacion
 			CreationModeState::Instance()->Resume();
 			break;
-		case 1: // Seleccionamos otro mapa
+		case 2: // Seleccionamos otro mapa
 			pausa = false;
 			vaciarTramosEnMemoria();
 			engineCreation->PushState(MapSelectorState::Instance());
 			break;
-		case 2: // entramos a las opciones
+		case 3: // entramos a las opciones
 			pausa = false;
 			engineCreation->PushState(OptionsMenuState::Instance());
 			break;
-		case 3: //guardamos y salimos
+		case 4: //guardamos y salimos
 			guardarCircuitoToFile();
 			engineCreation->Cleanup();
 			engineCreation->PushState(MainMenuState::Instance());
@@ -591,12 +639,11 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		{
 			//si ya se habia seleccionado una pieza la dibujamos
 			añade_tramo(tramoactual);
-			cout << glm::to_string(vectorTramosEnMemoria.back()->getMatFinal()) << "\n";
+
 		}
 		else
 		{
-			// si no, simplemente marcamos la pieza como seleccionada
-	
+			
 		}
 		seleccionado = !seleccionado;
 		break;
@@ -606,7 +653,12 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 		else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
 			if (!vectorTramosEnMemoria.empty()) {
 				vectorTramosEnMemoria.pop_back();
+				if (!vectorTramosEnMemoria.empty())
 				myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
+			}
+			else {
+				// si el stack de piezas esta vacio reseteamos la matriz de transformaciones a la matriz unidad
+				myMatrix = glm::mat4(1);
 			}
 		}
 		break;
@@ -1150,16 +1202,36 @@ void botonesPausa() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	Point3D v0( -0.6,0.2,0.0 );
-	Point3D v1( 0.6,0.2,0.0 );
-	Point3D v3( -0.6,0.0,0.0 );
-	Point3D v2( 0.6,0.0,0.0 );
+	Point3D v0(-0.6, 0.5, 0.0);
+	Point3D v1(0.6, 0.5, 0.0);
+	Point3D v3(-0.6, 0.3, 0.0);
+	Point3D v2(0.6, 0.3, 0.0);
 
 
 	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
+
 	if (ButtonPausa == 1) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
+	v0[1] = 0.2;
+	v1[1] = 0.2;
+	v2[1] = 0.0;
+	v3[1] = 0.0;
+
+	quadtex(v0, v1, v2, v3,
+		0, 1, 0, 1, 1, 1);
+
+	if (ButtonPausa == 2) {
 		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
 	}
 	else {
@@ -1178,7 +1250,7 @@ void botonesPausa() {
 		0, 1, 0, 1, 1, 1);
 
 
-	if (ButtonPausa == 2) {
+	if (ButtonPausa == 3) {
 		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
 	}
 	else {
@@ -1196,7 +1268,7 @@ void botonesPausa() {
 	quadtex(v0, v1, v2, v3,
 		0, 1, 0, 1, 1, 1);
 
-	if (ButtonPausa == 3) {
+	if (ButtonPausa == 4) {
 		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
 	}
 	else {
@@ -1219,22 +1291,29 @@ void botonesPausa() {
 
 
 void textosBotonesPausa() {
+
 	if (ButtonPausa == 0)
+		textoStroke(-0.18, 0.37, 0.2, "Simulacion", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.18, 0.37, 0.2, "Simulacion", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+
+	if (ButtonPausa == 1)
 		textoStroke(-0.18, 0.07, 0.2, "Reanudar", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
 	else
 		textoStroke(-0.18, 0.07, 0.2, "Reanudar", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
 
-	if (ButtonPausa == 1)
+	if (ButtonPausa == 2)
 		textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
 	else
 		textoStroke(-0.27, -0.23, 0.2, "Cargar Circuito", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
 
-	if (ButtonPausa == 2)
+	if (ButtonPausa == 3)
 		textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
 	else
 		textoStroke(-0.18, -0.53, 0.2, "Opciones", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
 
-	if (ButtonPausa == 3)
+	if (ButtonPausa == 4)
 		textoStroke(-0.27, -0.83, 0.2, "Salir y Guardar", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
 	else
 		textoStroke(-0.27, -0.83, 0.2, "Salir y Guardar", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
@@ -1294,6 +1373,29 @@ void hudModoCreacion() {
 
 }
 
+void dibujarPuntosPath() {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	// Habilitamos blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// Z-Buffer
+	glDepthMask(GL_FALSE);
+	// Dibujar traslucidos
+
+	//la tira donde se colocaran las piezas
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glColor4f(0, 0.8, 1, 1);
+	for (int i = 0; i < pathSimulacion.size(); i++) {
+		glPushMatrix();
+		glTranslatef(pathSimulacion[i].x, pathSimulacion[i].y, pathSimulacion[i].z);
+		glutSolidSphere(0.3, 10, 10);
+		glPopMatrix();
+	}
+
+	glPopAttrib();
+}
+
 void dibujoCircuito() {
 	// Borra buffers y selecciona modelview
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1304,7 +1406,9 @@ void dibujoCircuito() {
 
 	Entorno(resolucion,1).draw(textura_mesa,200,150,20,texturaSuelo,texturaParednegX,texturaParedposX,texturaParednegZ,texturaParedposZ,texturaTecho);
 	dibujarCircuitoEnMemoria();
-
+	if (startSimulacion) {
+		dibujarPuntosPath();
+	}
 	
 
 }

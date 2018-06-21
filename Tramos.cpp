@@ -18,10 +18,22 @@ glm::mat4 Tramo::getMatInicial() {
 glm::mat4 Tramo::getMatFinal() {
 	return _matfinal;
 }
+/*
+Devuelve 5 puntos a lo largo del tramo justo en el centro del mismo para generar el path que utilizar en la simulacion
+*/
+ void Tramo::calcularPathPoints(std::vector<Point3D> &path) {
 
-std::vector<Point3D*> Tramo::calcularPathPoints() {
-	vector<Point3D*> puntos;
-	return puntos;
+
+	glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	float longi = _longitud / 5;
+	
+	for (int i = 0; i < 6; i++) {
+		glm::vec3 punto = vectorX * longi*(float)i + pos;
+		path.push_back(Point3D(punto.x,punto.y,punto.z));
+	}
+
 }
 
 void Tramo::draw(GLuint textura, GLuint texturaLateral) {
@@ -149,9 +161,12 @@ void  Tramo::writeToFile(std::ostream& o) {
 /*
 Metodos de la clase TramoCurvo
 */
-std::vector<Point3D*> TramoCurvo::calcularPathPoints() {
-	vector<Point3D*> puntos;
-	return puntos;
+void TramoCurvo::calcularPathPoints(std::vector<Point3D> &path) {
+
+	glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+
 }
 
 void TramoCurvo::setMatrizfinal(glm::mat4 matini) {
@@ -368,11 +383,22 @@ glm::mat4 Rampa::getMatFinal() {
 	return _matfinal;
 }
 
-std::vector<Point3D*> Rampa::calcularPathPoints() {
-	vector<Point3D*> puntos;
-	return puntos;
-}
+void Rampa::calcularPathPoints(std::vector<Point3D> &path) {
 
+
+	glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	glm::vec3 vectorY= glm::vec3(_matinicial[1]);
+	float longi = _longitud / 5;
+
+	for (int i = 0; i < 6; i++) {
+		glm::vec3 punto = (vectorX * longi*(float)i) +(vectorY *_pendiente* longi*(float)i) +pos;
+		path.push_back(Point3D(punto.x, punto.y, punto.z));
+	}
+
+
+}
 
 void Rampa::draw(GLuint textura, GLuint texturaLateral) 
 {
@@ -498,9 +524,12 @@ void Rampa::writeToFile(std::ostream& o) {
 Metodos de la clase RampaCurva
 */
 
-std::vector<Point3D*> RampaCurva::calcularPathPoints() {
-	vector<Point3D*> puntos;
-	return puntos;
+void RampaCurva::calcularPathPoints(std::vector<Point3D> &path) {
+
+	glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+
 }
 
 void RampaCurva::setMatrizfinal(glm::mat4 matini) {
@@ -707,10 +736,14 @@ void RampaCurva::writeToFile(std::ostream& o) {
 Metodos de la clase TramoSinuosoHorizontal
 */
 
-std::vector<Point3D*> TramoSinuosoHorizontal::calcularPathPoints() {
-	vector<Point3D*> puntos;
-	return puntos;
+void TramoSinuosoHorizontal::calcularPathPoints(std::vector<Point3D> &path) {
+
+	glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+
 }
+
 
 void TramoSinuosoHorizontal::setMatrizfinal(glm::mat4 matini) {
 	float ondulacion_quad = rad(abs(_ondulacion * 180)) / _res;
@@ -884,11 +917,13 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
  Metodos de la clase TramoSinuosoVertical
  */
 
- std::vector<Point3D*> TramoSinuosoVertical::calcularPathPoints() {
-	 vector<Point3D*> puntos;
-	 return puntos;
- }
+ void TramoSinuosoVertical::calcularPathPoints(std::vector<Point3D> &path) {
 
+	 glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	 glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+
+ }
 
  void TramoSinuosoVertical::setMatrizfinal(glm::mat4 matini) {
 	 float ondulacion_quad = rad(abs(_ondulacion * 180)) / _res;
@@ -1057,9 +1092,12 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
  Metodos de la clase Looping
  */
 
- std::vector<Point3D*> Looping::calcularPathPoints() {
-	 vector<Point3D*> puntos;
-	 return puntos;
+ void Looping::calcularPathPoints(std::vector<Point3D> &path) {
+
+	 glm::vec3 pos = glm::vec3(_matinicial[3]);
+
+	 glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+
  }
 
  void Looping::setMatrizfinal(glm::mat4 matini) {
