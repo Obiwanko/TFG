@@ -110,7 +110,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
 	*/
@@ -150,7 +150,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
 	*/
@@ -194,7 +194,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
 	*/
@@ -243,7 +243,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
 	*/
@@ -296,7 +296,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	void calcularPathPoints(std::vector<Point3D> &path);
 
 	virtual void writeToFile(std::ostream& o);
 
@@ -345,7 +345,7 @@ public:
 
 	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
-	virtual virtual void calcularPathPoints(std::vector<Point3D> &path);
+	virtual void calcularPathPoints(std::vector<Point3D> &path);
 
 	virtual void writeToFile(std::ostream& o);
 

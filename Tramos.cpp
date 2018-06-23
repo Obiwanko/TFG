@@ -163,9 +163,32 @@ Metodos de la clase TramoCurvo
 */
 void TramoCurvo::calcularPathPoints(std::vector<Point3D> &path) {
 
+
 	glm::vec3 pos = glm::vec3(_matinicial[3]);
 
 	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	glm::vec3 vectorZ = glm::vec3(_matinicial[2]);
+
+	float radio = abs(_longitud / rad(_angulo));
+
+	float angulo_quad = rad(abs(_angulo)) / _res;
+
+	float longi = _longitud / 5;
+	pos = pos + vectorZ * (signo(_angulo)*-radio) ;
+
+	/*
+	queremos 5 puntos a lo largo del tramo
+	*/
+	glm::vec3 posX;
+	glm::vec3 posZ;
+	for (int i = 0; i < _res; i+=_res/5) {
+		posX = ((radio)* sin((i + 1)*angulo_quad)*vectorX);
+		posZ = (radio)* cos((i + 1)*angulo_quad)   *vectorZ;
+		if (_angulo < 0) posZ = -posZ;
+
+		glm::vec3 punto = posX + posZ + pos ; 
+		path.push_back(Point3D(punto.x, punto.y, punto.z));
+	}
 
 }
 
@@ -526,9 +549,36 @@ Metodos de la clase RampaCurva
 
 void RampaCurva::calcularPathPoints(std::vector<Point3D> &path) {
 
+
 	glm::vec3 pos = glm::vec3(_matinicial[3]);
 
 	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	glm::vec3 vectorY = glm::vec3(_matinicial[1]);
+	glm::vec3 vectorZ = glm::vec3(_matinicial[2]);
+
+	float radio = abs(_longitud / rad(_angulo));
+
+	float angulo_quad = rad(abs(_angulo)) / _res;
+
+	float longi = _longitud / 5;
+	pos = pos + vectorZ * (signo(_angulo)*-radio);
+
+	/*
+	queremos 5 puntos a lo largo del tramo
+	*/
+	glm::vec3 posX;
+	glm::vec3 posY;
+	glm::vec3 posZ;
+	for (int i = 0; i < _res; i += _res / 5) {
+		float inc = (float)(i + 1) / (float)_res;
+		posX = ((radio)* sin((i + 1)*angulo_quad)*vectorX);
+		posY = vectorY*(_pendiente)*inc*_longitud;
+		posZ = (radio)* cos((i + 1)*angulo_quad)   *vectorZ;
+		if (_angulo < 0) posZ = -posZ;
+
+		glm::vec3 punto = posX+posY+ posZ + pos;
+		path.push_back(Point3D(punto.x, punto.y, punto.z));
+	}
 
 }
 
@@ -738,9 +788,32 @@ Metodos de la clase TramoSinuosoHorizontal
 
 void TramoSinuosoHorizontal::calcularPathPoints(std::vector<Point3D> &path) {
 
+
 	glm::vec3 pos = glm::vec3(_matinicial[3]);
 
 	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	glm::vec3 vectorY = glm::vec3(_matinicial[1]);
+	glm::vec3 vectorZ = glm::vec3(_matinicial[2]);
+
+	float ondulacion_quad = rad(abs(_ondulacion * 180)) / _res;
+	int ondulacion_inicial_quad = (_orientacion ? 90 : 270);
+
+	float longi = _longitud / 5;
+
+	/*
+	queremos 5 puntos a lo largo del tramo
+	*/
+	glm::vec3 posX;
+	glm::vec3 posY;
+	glm::vec3 posZ;
+	for (int i = 0; i < _res; i += _res / 5) {
+		float inc = (float)(i + 1) / (float)_res;
+		posX = (inc * _longitud*vectorX);
+		posZ = (float(_potencia * cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)))))*vectorZ;
+
+		glm::vec3 punto = posX + posZ + pos;
+		path.push_back(Point3D(punto.x, punto.y, punto.z));
+	}
 
 }
 
@@ -922,7 +995,28 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 	 glm::vec3 pos = glm::vec3(_matinicial[3]);
 
 	 glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	 glm::vec3 vectorY = glm::vec3(_matinicial[1]);
+	 glm::vec3 vectorZ = glm::vec3(_matinicial[2]);
 
+	 float ondulacion_quad = rad(abs(_ondulacion * 180)) / _res;
+	 int ondulacion_inicial_quad = (_orientacion ? 90 : 270);
+
+	 float longi = _longitud / 5;
+
+	 /*
+	 queremos 5 puntos a lo largo del tramo
+	 */
+	 glm::vec3 posX;
+	 glm::vec3 posY;
+	 glm::vec3 posZ;
+	 for (int i = 0; i < _res; i += _res / 5) {
+		 float inc = (float)(i + 1) / (float)_res;
+		 posX = (inc * _longitud*vectorX);
+		 posY = (float(_potencia * cos(((i + 1)*ondulacion_quad) - rad(abs(ondulacion_inicial_quad)))))*vectorY;
+
+		 glm::vec3 punto = posX + posY + pos;
+		 path.push_back(Point3D(punto.x, punto.y, punto.z));
+	 }
  }
 
  void TramoSinuosoVertical::setMatrizfinal(glm::mat4 matini) {
@@ -1094,10 +1188,33 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 
  void Looping::calcularPathPoints(std::vector<Point3D> &path) {
 
+
 	 glm::vec3 pos = glm::vec3(_matinicial[3]);
 
 	 glm::vec3 vectorX = glm::vec3(_matinicial[0]);
+	 glm::vec3 vectorY = glm::vec3(_matinicial[1]);
+	 glm::vec3 vectorZ = glm::vec3(_matinicial[2]);
 
+	 float angulo_quad = rad(abs(360)) / _res;
+
+
+
+	 float longi = _longitud / 5;
+
+	 /*
+	 queremos 5 puntos a lo largo del tramo
+	 */
+	 glm::vec3 posX;
+	 glm::vec3 posY;
+	 glm::vec3 posZ;
+	 for (int i = 0; i < _res; i += _res / 5) {
+		 float inc = (float)(i + 1) / (float)_res;
+		 posX = (float)(_radio * cos(((i + 1)*angulo_quad) - rad(abs(90))))*vectorX;
+		 posY = (float)((_radio * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + _radio )*vectorY;
+		 posZ = (inc * _separacion)* vectorZ;
+		 glm::vec3 punto = posX + posY +posZ + pos;
+		 path.push_back(Point3D(punto.x, punto.y, punto.z));
+	 }
  }
 
  void Looping::setMatrizfinal(glm::mat4 matini) {
