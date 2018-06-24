@@ -257,6 +257,7 @@ void textoStroke(GLfloat x, GLfloat y, GLfloat z, char * text, GLfloat scaleX, G
 	glScalef(1 / 152.38, 1 / 152.38, 1 / 152.38);
 	//reduccion de escala para que quede un texto visible en el viewport orthogolnal standar de -1 a 1
 	glScalef(scaleX, scaleY, scaleZ);
+
 	glutStrokeString(GLUT_STROKE_ROMAN, (unsigned char*)text);
 
 	glPopMatrix();

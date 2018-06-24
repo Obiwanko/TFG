@@ -117,14 +117,48 @@ std::vector<Tramo*> vectorTramosEnMemoria;
 //variables de uso para la simulacion
 std::vector<Point3D> pathSimulacion;
 BOOLEAN startSimulacion = false;
+BOOLEAN mostrarPath = false;
+Point3D posicionActualCoche;
+int delay = 250;
+int velocidad = 1;
+//tiempo en el que inicia la simulacion
+int tiempoInicio = 0;
+
+Point3D getPositionAt(int currentTime) {
+	Point3D before, after, result,yaw;
+	if (!pathSimulacion.empty()) {
+		int currentIndex = (currentTime / delay) % pathSimulacion.size();
+		before = pathSimulacion[currentIndex];
+		after = pathSimulacion[(currentIndex + 1) % pathSimulacion.size()];
+
+		double progress = fmod(((
+			(double)currentTime) / (double)delay),
+			(double)pathSimulacion.size())
+			
+			- currentIndex;
+
+		result.x = before.x + progress*(after.x - before.x);
+		result.y = before.y + progress*(after.y - before.y);
+		result.z = before.z + progress*(after.z - before.z);
+
+	}
 
 
+	return result;
+}
 
 
-void onIdleCreation()
+void lookAtLastPiece() {
+	Point3D posicion(glm::vec3(myMatrix[3]).x, glm::vec3(myMatrix[3]).y, glm::vec3(myMatrix[3]).z);
+	Point3D mirando(glm::vec3(myMatrix[0]).x, glm::vec3(myMatrix[0]).y, glm::vec3(myMatrix[0]).z);
+	camaraflotante.LookAtPoint(posicion, 5);
+}
+
+void onIdleCreation(){
 // Funcion de atencion al evento idle
-{
 
+
+	posicionActualCoche = getPositionAt(glutGet(GLUT_ELAPSED_TIME)- tiempoInicio);
 	static int antesc = 0;
 	int ahorac, tiempo_transcurridoc;
 
@@ -132,6 +166,8 @@ void onIdleCreation()
 	tiempo_transcurridoc = ahorac - antesc; //Tiempo transcurrido desde antes en msg.
 
 	rotacion_pieza += float((0.036f*float(tiempo_transcurridoc)));
+
+
 
 	antesc = ahorac;
 	glutPostRedisplay();
@@ -422,6 +458,7 @@ void rellenaPath() {
 		vectorTramosEnMemoria[i]->calcularPathPoints(pathSimulacion);
 	
 	}
+	pathSimulacion.push_back(Point3D(myMatrix[3].x, myMatrix[3].y, myMatrix[3].z));
 }
 
 void vaciaPath() {
@@ -434,61 +471,6 @@ void printPath() {
 
 		cout << pathSimulacion[i].x << " , " << pathSimulacion[i].y << " , " << pathSimulacion[i].z << " \n ";
 
-	}
-}
-
-void InitSimulation() {
-	rellenaPath();
-	printPath();
-	startSimulacion = true;
-}
-
-void onKeyPausa(unsigned char tecla, int x, int y)
-// Funcion de atencion al teclado
-{	
-
-	switch (tecla) {
-	case 13://se pulsa enter
-		switch (ButtonPausa)
-		{
-		case 0: //comenzamos la simulacion
-			if (!startSimulacion){
-				InitSimulation();
-			}
-				
-			else{
-				startSimulacion = !startSimulacion;
-				vaciaPath();
-			}
-				
-
-			break;
-		case 1: //Reanudamos el modo creacion
-			CreationModeState::Instance()->Resume();
-			break;
-		case 2: // Seleccionamos otro mapa
-			pausa = false;
-			vaciarTramosEnMemoria();
-			engineCreation->PushState(MapSelectorState::Instance());
-			break;
-		case 3: // entramos a las opciones
-			pausa = false;
-			engineCreation->PushState(OptionsMenuState::Instance());
-			break;
-		case 4: //guardamos y salimos
-			guardarCircuitoToFile();
-			engineCreation->Cleanup();
-			engineCreation->PushState(MainMenuState::Instance());
-			break;
-		default:
-			break;
-		}
-		break;
-	case 8: //se pulsa retroceso.
-		break;
-	case 27: // Pulso escape
-		CreationModeState::Instance()->Resume();
-		break;
 	}
 }
 
@@ -608,169 +590,302 @@ void dibuja_tramo_actual(GLint identificador) {
 }
 
 
+
+void onKeySimulacion(unsigned char tecla, int x, int y)
+// Funcion de atencion al teclado
+{
+
+	if (startSimulacion) {
+		switch (tecla) {
+		case 'W':
+		case 'w':
+			delay -= 10;
+			if (delay < 1) {
+				delay = 1;
+			}
+
+			break;
+
+		case 'S':
+		case 's':
+			delay += 10;
+			if (delay > 1000) {
+				delay = 1000;
+			}
+			break;
+		case 'M':
+		case 'm':
+			mostrarPath = !mostrarPath;
+			break;
+		case 27: // Pulso escape
+			ButtonPausa = 0;
+			CreationModeState::Instance()->Pause();
+			break;
+
+		}
+	}
+}
+
+void InitSimulation() {
+	rellenaPath();
+	printPath();
+	glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
+	glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
+	startSimulacion = true;
+}
+
+void onKeyPausa(unsigned char tecla, int x, int y)
+// Funcion de atencion al teclado
+{
+
+	switch (tecla) {
+	case 13://se pulsa enter
+		switch (ButtonPausa)
+		{
+		case 0: //comenzamos la simulacion
+			if (!startSimulacion) {
+				InitSimulation();
+				pausa = false;
+			}
+
+			else {
+				pausa = false;
+				glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
+				glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
+			}
+			tiempoInicio = glutGet(GLUT_ELAPSED_TIME);
+			break;
+		case 1: //Reanudamos el modo creacion
+			CreationModeState::Instance()->Resume();
+			vaciaPath();
+			break;
+		case 2: // Seleccionamos otro mapa
+			pausa = false;
+			vaciarTramosEnMemoria();
+			engineCreation->PushState(MapSelectorState::Instance());
+			break;
+		case 3: // entramos a las opciones
+			pausa = false;
+			engineCreation->PushState(OptionsMenuState::Instance());
+			break;
+		case 4: //guardamos y salimos
+			guardarCircuitoToFile();
+			engineCreation->Cleanup();
+			engineCreation->PushState(MainMenuState::Instance());
+			break;
+		default:
+			break;
+		}
+		break;
+	case 8: //se pulsa retroceso.
+		break;
+	case 27: // Pulso escape
+		CreationModeState::Instance()->Resume();
+		break;
+	}
+}
+
 void onKeyCreacion(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
-	switch (tecla) {
-	case 'W':
-	case 'w':
-		camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
-		break;
 
-	case 'S':
-	case 's':
-		camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
-		break;
-
-	case 'D':
-	case 'd':
-		camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
-		break;
-	case 'A':
-	case 'a':
-		camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
-		break;
-	case ' ':
-		//enfocamos a la ultima pieza colocada
-		camaraflotante.LookLastPiece(glm::vec3(myMatrix[3]).x, glm::vec3(myMatrix[3]).y, glm::vec3(myMatrix[3]).z);
-		break;
-	case 13:
-		if (seleccionado)
-		{
-			//si ya se habia seleccionado una pieza la dibujamos
-			añade_tramo(tramoactual);
-
-		}
-		else
-		{
-			
-		}
-		seleccionado = !seleccionado;
-		break;
-	case 8: //se pulsa retroceso.
-		if (seleccionado) // si una pieza esta seleccionada la deseleccionamos
-			seleccionado = !seleccionado;
-		else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
-			if (!vectorTramosEnMemoria.empty()) {
-				vectorTramosEnMemoria.pop_back();
-				if (!vectorTramosEnMemoria.empty())
-				myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
-			}
-			else {
-				// si el stack de piezas esta vacio reseteamos la matriz de transformaciones a la matriz unidad
-				myMatrix = glm::mat4(1);
-			}
-		}
-		break;
-	case 27: // Pulso escape
-		ButtonPausa = 0;
-		CreationModeState::Instance()->Pause();
-		//damos de alta a las funciones de escucha del menu
-		glutSpecialFunc(onSpecialKeyPausa);
-		glutKeyboardFunc(onKeyPausa);
-		break;
-	}
-
-
-
-	if (seleccionado) {
+	if (startSimulacion) {
 		switch (tecla) {
-		case 't':
-		case 'T':
-			LongitudoRadio += 0.1;
-			if (LongitudoRadio > 10) {
-				LongitudoRadio = 10;
-			}
-			break;
-		case 'g':
-		case 'G':
-			LongitudoRadio -= 0.1;
-			if (LongitudoRadio < 1) {
-				LongitudoRadio = 1;
-			}
-			break;
-		case 'r':
-		case 'R':
-			direccion = !direccion;
-			break;
-		case 'f':
-		case 'F':
-			AnchoCarretera -= 0.1;
-			if (AnchoCarretera < 1) {
-				AnchoCarretera = 1;
-			}
-			
-			break;
-		case 'h':
-		case 'H':
-			AnchoCarretera += 0.1;
-			if (AnchoCarretera > 10)
-				AnchoCarretera = 10;
-			break;
-		case 'j':
-		case 'J':
-			AngulosGrados -= 0.5;
-			if (AngulosGrados < 0) {
-				AngulosGrados = 0;
-			}
-			
-			Ondulacion -= 0.2;
-			if (Ondulacion < 0) {
-				Ondulacion = 0;
-			}
-			break;
-		case 'k':
-		case 'K':
-			AngulosGrados += 0.5;
-			// no es valido que el angulo sea mayor de 359
-			if (AngulosGrados > 359) {
-				AngulosGrados = 359;
-			}
-
-			Ondulacion += 0.2;
-			if (Ondulacion > 30) {
-				Ondulacion = 30;
-			}
-			break;
-		case 'u':
-		case 'U':
-			Inclinacion -= 0.1;
-			if (Inclinacion < -1.5) {
-				Inclinacion = -1.5;
-				}
-			break;
-		case 'i':
-		case 'I':
-			Inclinacion += 0.1;
-			if (Inclinacion > 1.5) {
-				Inclinacion = 1.5;
-			}
-			break;
-		case 'o':
-		case 'O':
-			Separacion -= 0.1;
-			if (Separacion < AnchoCarretera)
-				Separacion = AnchoCarretera;
-			
-			Potencia -= 0.1;
-			if (Potencia < 0) {
-				Potencia = 0;
+		case 'W':
+		case 'w':
+			delay -= 1;
+			if (delay == 1) {
+				delay = 1;
 			}
 
 			break;
-		case 'p':
-		case 'P':
-			Separacion += 0.1;
-			if (Separacion > 20)
-				Separacion = 20;
 
-			Potencia -= 0.1;
-			if (Potencia >3) {
-				Potencia = 3;
+		case 'S':
+		case 's':
+			delay += 1;
+			if (delay == 1000) {
+				delay = 1000;
 			}
 			break;
+		case 'M':
+		case 'm':
+			mostrarPath = !mostrarPath;
+			break;
+		case 27: // Pulso escape
+			ButtonPausa = 0;
+			CreationModeState::Instance()->Pause();
+			//damos de alta a las funciones de escucha del menu
+			glutSpecialFunc(onSpecialKeyPausa);
+			glutKeyboardFunc(onKeyPausa);
+			break;
+
 		}
 	}
+	else {
+
+		switch (tecla) {
+		case 'W':
+		case 'w':
+			camaraflotante.ProcessKeyboard(FORWARD, velocidadcamara);
+			break;
+
+		case 'S':
+		case 's':
+			camaraflotante.ProcessKeyboard(BACKWARD, velocidadcamara);
+			break;
+
+		case 'D':
+		case 'd':
+			camaraflotante.ProcessKeyboard(RIGHT, velocidadcamara);
+			break;
+		case 'A':
+		case 'a':
+			camaraflotante.ProcessKeyboard(LEFT, velocidadcamara);
+			break;
+		case ' ':
+			//enfocamos a la ultima pieza colocad
+
+			lookAtLastPiece();
+			break;
+		case 13:
+			if (seleccionado)
+			{
+				//si ya se habia seleccionado una pieza la dibujamos
+				añade_tramo(tramoactual);
+
+			}
+			else
+			{
+
+			}
+			seleccionado = !seleccionado;
+			break;
+		case 8: //se pulsa retroceso.
+			if (seleccionado) // si una pieza esta seleccionada la deseleccionamos
+				seleccionado = !seleccionado;
+			else {//si no tenenmos pieza seleccionada la eliminamos, TODO añadir mensaje de confirmacion.
+				if (!vectorTramosEnMemoria.empty()) {
+					vectorTramosEnMemoria.pop_back();
+					if (!vectorTramosEnMemoria.empty())
+						myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
+				}
+				else {
+					// si el stack de piezas esta vacio reseteamos la matriz de transformaciones a la matriz unidad
+					myMatrix = glm::mat4(1);
+				}
+			}
+			break;
+		case 27: // Pulso escape
+			ButtonPausa = 0;
+			CreationModeState::Instance()->Pause();
+			//damos de alta a las funciones de escucha del menu
+			glutSpecialFunc(onSpecialKeyPausa);
+			glutKeyboardFunc(onKeyPausa);
+			break;
+		}
+
+
+
+		if (seleccionado) {
+			switch (tecla) {
+			case 't':
+			case 'T':
+				LongitudoRadio += 0.1;
+				if (LongitudoRadio > 10) {
+					LongitudoRadio = 10;
+				}
+				break;
+			case 'g':
+			case 'G':
+				LongitudoRadio -= 0.1;
+				if (LongitudoRadio < 1) {
+					LongitudoRadio = 1;
+				}
+				break;
+			case 'r':
+			case 'R':
+				direccion = !direccion;
+				break;
+			case 'f':
+			case 'F':
+				AnchoCarretera -= 0.1;
+				if (AnchoCarretera < 1) {
+					AnchoCarretera = 1;
+				}
+
+				break;
+			case 'h':
+			case 'H':
+				AnchoCarretera += 0.1;
+				if (AnchoCarretera > 10)
+					AnchoCarretera = 10;
+				break;
+			case 'j':
+			case 'J':
+				AngulosGrados -= 0.5;
+				if (AngulosGrados < 0) {
+					AngulosGrados = 0;
+				}
+
+				Ondulacion -= 0.2;
+				if (Ondulacion < 0) {
+					Ondulacion = 0;
+				}
+				break;
+			case 'k':
+			case 'K':
+				AngulosGrados += 0.5;
+				// no es valido que el angulo sea mayor de 359
+				if (AngulosGrados > 359) {
+					AngulosGrados = 359;
+				}
+
+				Ondulacion += 0.2;
+				if (Ondulacion > 30) {
+					Ondulacion = 30;
+				}
+				break;
+			case 'u':
+			case 'U':
+				Inclinacion -= 0.1;
+				if (Inclinacion < -1.5) {
+					Inclinacion = -1.5;
+				}
+				break;
+			case 'i':
+			case 'I':
+				Inclinacion += 0.1;
+				if (Inclinacion > 1.5) {
+					Inclinacion = 1.5;
+				}
+				break;
+			case 'o':
+			case 'O':
+				Separacion -= 0.1;
+				if (Separacion < AnchoCarretera)
+					Separacion = AnchoCarretera;
+
+				Potencia -= 0.1;
+				if (Potencia < 0) {
+					Potencia = 0;
+				}
+
+				break;
+			case 'p':
+			case 'P':
+				Separacion += 0.1;
+				if (Separacion > 20)
+					Separacion = 20;
+
+				Potencia -= 0.1;
+				if (Potencia >3) {
+					Potencia = 3;
+				}
+				break;
+			}
+		}
+	}
+
 }
 
 
@@ -844,10 +959,12 @@ void updateRes() {
 
 void CreationModeState::Resume() {
 	pausa = false;
+	startSimulacion = false;
 	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeyCreacion);// Alta de la funcion de atencion al teclado 
 	glutIdleFunc(onIdleCreation); // Alta de la funcion de atencion a idle
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
+	lookAtLastPiece();
 	updateRes();
 }
 
@@ -858,6 +975,9 @@ void CreationModeState::Pause() {
 	glutKeyboardFunc(NULL);
 	//glutIdleFunc(NULL); 
 	glutMouseFunc(NULL);
+
+	glutSpecialFunc(onSpecialKeyPausa);
+	glutKeyboardFunc(onKeyPausa);
 }
 
 
@@ -876,45 +996,45 @@ void texto_tramo_actual(GLint tramo) {
 	
 	switch (tramo + 1) {
 	case 1:
-		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 2:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 3:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 4:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 5:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 6:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		break;
 	case 7:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.03, 0.03, 0.03, NEGRO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
 		
 		break;
 		//TODO añadir nuevas piezas conforme las vaya haciendo
@@ -1338,6 +1458,52 @@ void menuPausa() {
 	glPopAttrib();
 }
 
+void texto_simulacion() {
+	char *a = "velocidad: ";
+	char buf[8];
+	sprintf(buf, "%d", delay);
+	char result[100];   // array to hold the result.
+	strcpy(result, a); // copy string one into the result.
+	strcat(result, buf); // append string two to the result.
+
+	textoStroke(-0.4, 0.05, 0.2, result, 0.05, 0.05, 0.05, ROJO, GLUT_STROKE_ROMAN);
+	textoStroke(-1, 0.05, 0.2, "W/S: aumentar/disminuir velocidad", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+	textoStroke(-1, 0.00, 0.2, "M: mostrar/ocultar path", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+
+}
+
+void hudSimulacion() {
+
+	//HUD
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	//Preparamos camara orthografica para poder dibujar el Hud
+	glOrtho(-1, 1, -1, 1, -1.0, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_CULL_FACE);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	//Nos disponemos a añadir los elementos al hud, de esta forma, podremos tener elementos añadidos de forma constante delante de la camara y crear una interfaz para el usuario.
+
+
+	if (!pausa) {
+
+		texto_simulacion();
+	}
+	else {
+		menuPausa();
+	}
+
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+
 void hudModoCreacion() {
 
 
@@ -1388,8 +1554,8 @@ void dibujarPuntosPath() {
 	glColor4f(0, 0.8, 1, 1);
 	for (int i = 0; i < pathSimulacion.size(); i++) {
 		glPushMatrix();
-		glTranslatef(pathSimulacion[i].x, pathSimulacion[i].y, pathSimulacion[i].z);
-		glutSolidSphere(0.3, 10, 10);
+		glTranslatef(pathSimulacion[i].x, pathSimulacion[i].y+0.2, pathSimulacion[i].z);
+		glutSolidSphere(0.2, 10, 10);
 		glPopMatrix();
 	}
 
@@ -1401,13 +1567,37 @@ void dibujoCircuito() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	if (startSimulacion) {
+		camaraflotante.LookAtPoint(posicionActualCoche, 5);
+	}
+
 	camaraflotante.SetGluLookUp();
 	glPolygonMode(GL_FRONT, GL_LINE);
 
 	Entorno(resolucion,1).draw(textura_mesa,200,150,20,texturaSuelo,texturaParednegX,texturaParedposX,texturaParednegZ,texturaParedposZ,texturaTecho);
 	dibujarCircuitoEnMemoria();
 	if (startSimulacion) {
-		dibujarPuntosPath();
+		if (mostrarPath) {
+			dibujarPuntosPath();
+		}
+	
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		// Habilitamos blending
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// Z-Buffer
+		glDepthMask(GL_FALSE);
+		// Dibujar traslucidos
+
+		//la tira donde se colocaran las piezas
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glColor4f(1, 0, 0, 1);
+
+		glTranslatef(posicionActualCoche.x, posicionActualCoche.y, posicionActualCoche.z);
+		glutSolidSphere(0.4, 10, 10);
+
+		glPopAttrib();
 	}
 	
 
@@ -1425,7 +1615,13 @@ void CreationModeState::Draw(StateEngine* game) {
 	glLoadIdentity();
 
 	dibujoCircuito();
-	hudModoCreacion();
+	if (startSimulacion) {
+		hudSimulacion();
+	}
+	else {
+		hudModoCreacion();
+	}
+
 
 	
 	glPopMatrix();

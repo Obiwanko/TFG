@@ -29,7 +29,7 @@ Devuelve 5 puntos a lo largo del tramo justo en el centro del mismo para generar
 	glm::vec3 vectorX = glm::vec3(_matinicial[0]);
 	float longi = _longitud / 5;
 	
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 5; i++) {
 		glm::vec3 punto = vectorX * longi*(float)i + pos;
 		path.push_back(Point3D(punto.x,punto.y,punto.z));
 	}
@@ -415,7 +415,7 @@ void Rampa::calcularPathPoints(std::vector<Point3D> &path) {
 	glm::vec3 vectorY= glm::vec3(_matinicial[1]);
 	float longi = _longitud / 5;
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 5; i++) {
 		glm::vec3 punto = (vectorX * longi*(float)i) +(vectorY *_pendiente* longi*(float)i) +pos;
 		path.push_back(Point3D(punto.x, punto.y, punto.z));
 	}
@@ -1199,7 +1199,7 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 
 
 
-	 float longi = _longitud / 5;
+	 float longi = _longitud / 8;
 
 	 /*
 	 queremos 5 puntos a lo largo del tramo
@@ -1207,7 +1207,7 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 	 glm::vec3 posX;
 	 glm::vec3 posY;
 	 glm::vec3 posZ;
-	 for (int i = 0; i < _res; i += _res / 5) {
+	 for (int i = 0; i < _res; i += _res / 8) {
 		 float inc = (float)(i + 1) / (float)_res;
 		 posX = (float)(_radio * cos(((i + 1)*angulo_quad) - rad(abs(90))))*vectorX;
 		 posY = (float)((_radio * sin(((i + 1)*angulo_quad) - rad(abs(90)))) + _radio )*vectorY;

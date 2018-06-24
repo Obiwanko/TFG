@@ -76,8 +76,8 @@ public:
 		updateCameraVectors();
 	}
 
-	void LookLastPiece(float posX, float posY, float posZ) {
-		Position = glm::vec3(posX, posY+5, posZ);
+	void LookAtPoint(Point3D pos ,float elevation) {
+		Position = glm::vec3(pos.x, pos.y  + elevation, pos.z);
 		Pitch = -89.0f; // miramos directamente hacia abajo
 		updateCameraVectors();
 	}
