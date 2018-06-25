@@ -48,17 +48,16 @@ GLint tramoactual = 0;
 //control de la rotacion de las piezas en el HUD
 GLfloat rotacion_pieza = 0;
 
+//total de piezas diferentes disponibles
+GLint const totalTramos = 7;
+
+
+//variable para el control del pausado de este estado
 GLboolean pausa = false;
 
 
-/*
 
-Variables de atencion a la lista de tramos que tenenemos actualmente en memoria
 
-*/
-
-//total de piezas diferentes disponibles
-GLint const totalTramos = 7;
 
 
 //Identificadores texturas
@@ -111,6 +110,11 @@ GLfloat Ondulacion = 2;
 GLfloat Potencia = 0.5;
 BOOLEAN direccion=true;
 
+/*
+
+Variables de atencion a la lista de tramos que tenenemos actualmente en memoria
+
+*/
 glm::mat4 myMatrix(1);
 std::vector<Tramo*> vectorTramosEnMemoria;
 
@@ -634,6 +638,12 @@ void InitSimulation() {
 	startSimulacion = true;
 }
 
+void ResumeSimulation() {
+	glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
+	glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
+	pausa = false;
+}
+
 void onKeyPausa(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
@@ -661,7 +671,8 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 			break;
 		case 2: // Seleccionamos otro mapa
 			pausa = false;
-			vaciarTramosEnMemoria();
+			vaciaPath();
+			startSimulacion = false;
 			engineCreation->PushState(MapSelectorState::Instance());
 			break;
 		case 3: // entramos a las opciones
@@ -680,7 +691,13 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 	case 8: //se pulsa retroceso.
 		break;
 	case 27: // Pulso escape
-		CreationModeState::Instance()->Resume();
+		if (!startSimulacion) {
+			CreationModeState::Instance()->Resume();
+		}
+		else {
+			ResumeSimulation();
+		}
+	
 		break;
 	}
 }
@@ -890,6 +907,8 @@ void onKeyCreacion(unsigned char tecla, int x, int y)
 
 
 void CreationModeState::Init(StateEngine* engine) {
+	myMatrix = glm::mat4(1);
+	vaciarTramosEnMemoria();
 	cargarCircuitoFromFile();
 
 	engineCreation = engine;
@@ -940,7 +959,7 @@ void CreationModeState::Init(StateEngine* engine) {
 	inicializarTextura(texturaParednegX, "./textures/room/negx.dds");
 	inicializarTextura(texturaParedposZ, "./textures/room/posz.dds");
 	inicializarTextura(texturaParednegZ, "./textures/room/negz.dds");
-
+	
 }
 
 //Limpiar texturas etc
@@ -949,6 +968,8 @@ void CreationModeState::Cleanup() {
 	glutKeyboardFunc(NULL);
 	//glutIdleFunc(NULL);
 	glutMouseFunc(NULL);
+	vaciaPath();
+	vaciarTramosEnMemoria();
 }
 
 void updateRes() {
@@ -964,8 +985,15 @@ void CreationModeState::Resume() {
 	glutKeyboardFunc(onKeyCreacion);// Alta de la funcion de atencion al teclado 
 	glutIdleFunc(onIdleCreation); // Alta de la funcion de atencion a idle
 	glutMouseFunc(mouse);//Alta de la funcion de atencion a los botones del raton
-	lookAtLastPiece();
+	if (!vectorTramosEnMemoria.empty()) {
+		myMatrix = vectorTramosEnMemoria.back()->getMatFinal();
+	}
+	else {
+		myMatrix = glm::mat4(1);
+	}
+	
 	updateRes();
+	cout << glm::to_string(myMatrix);
 }
 
 void CreationModeState::Pause() {
@@ -992,49 +1020,47 @@ void CreationModeState::Update(StateEngine* game) {
 
 void texto_tramo_actual(GLint tramo) {
 
-
-	
 	switch (tramo + 1) {
 	case 1:
-		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 2:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 3:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 4:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 5:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 6:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		break;
 	case 7:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.04, 0.04, 0.04, VERDE, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 		
 		break;
 		//TODO añadir nuevas piezas conforme las vaya haciendo
@@ -1461,12 +1487,12 @@ void menuPausa() {
 void texto_simulacion() {
 	char *a = "velocidad: ";
 	char buf[8];
-	sprintf(buf, "%d", delay);
-	char result[100];   // array to hold the result.
-	strcpy(result, a); // copy string one into the result.
-	strcat(result, buf); // append string two to the result.
+	sprintf(buf, "%d", (1/delay)*1000);
+	char result[100];   
+	strcpy(result, a); 
+	strcat(result, buf);
 
-	textoStroke(-0.4, 0.05, 0.2, result, 0.05, 0.05, 0.05, ROJO, GLUT_STROKE_ROMAN);
+	textoStroke(-0.4, 0.05, 0.2, result, 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 	textoStroke(-1, 0.05, 0.2, "W/S: aumentar/disminuir velocidad", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 	textoStroke(-1, 0.00, 0.2, "M: mostrar/ocultar path", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
 
