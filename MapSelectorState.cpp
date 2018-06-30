@@ -233,8 +233,25 @@ void mapasCargados() {
 	
 }
 
+/*
+Metodo simple para mostrar el numero de pagina al usuario
+*/
+void paginas() {
 
-//TODO completar esta mision
+	int maxpag = ((int)nombresFicheros.size() / 8)+1;
+	char *a = "/";
+	char buf[8];
+	sprintf(buf, "%d", Pagina+1);
+	char result[100];
+	strcpy(result, buf);
+	strcat(result, a);
+	sprintf(buf, "%d", maxpag);
+	strcat(result, buf);
+
+	textoStroke(0.32, 0.75, 0.1, result, 0.06, 0.06, 0.05, AMARILLO, GLUT_STROKE_ROMAN);
+
+}
+
 void MapSelectorState::Draw(StateEngine* game) {
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -265,6 +282,7 @@ void MapSelectorState::Draw(StateEngine* game) {
 	backgroundSelector();
 	Soporte();
 	flechas();
+	paginas();
 	mapasCargados();
 
 	glPopAttrib();

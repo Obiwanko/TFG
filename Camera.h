@@ -12,6 +12,7 @@ Dependencias:
 +Utilidades.h
 +vector
 ***************************************************/
+
 #ifndef CAMERA_H
 #define CAMERA_H
 
