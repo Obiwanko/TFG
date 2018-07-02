@@ -1,3 +1,6 @@
+/*
+Clase de auxilio para el manejo de vectores 3D
+*/
 
 #ifndef POINT_H
 #define POINT_H

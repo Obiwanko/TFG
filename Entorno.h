@@ -3,6 +3,7 @@
 #define ENTORNO_H
 #include "Utilidades.h"// Biblioteca de Utilidades
 
+// clase sencilla para el control del entorno en la escena de creacion de circuitos
 class Entorno
 {
 protected:

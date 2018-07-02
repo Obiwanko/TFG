@@ -1,19 +1,6 @@
 /***************************************************
-ISGI::Crcuito estatico
-Roberto Vivo', 2014 (v2.0)
-
 Clases para la construccion de un circuito uniendo piezas
 como las del scalextric.
-
-Clases:
-Poin3D: Tripleta de coordenadas
-Tramo:  Geometría para un tramo recto de carretera
-TramoCurvo: Geometria para una curva como arco de circunferencia
-
-
-
-Dependencias: 
-+utilidades.h
 ***************************************************/ 
 #include "Utilidades.h"// Biblioteca de Utilidades
 #include <glm/glm.hpp>
@@ -28,6 +15,7 @@ Dependencias:
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
+
 
 class Tramo
 {
@@ -57,17 +45,25 @@ public:
 
 		setMatrizfinal(inicial);
 	};
-
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
-
+	/*
+	metodo que dibuja el tramo actual
+	*/
 	virtual void draw(GLuint textura, GLuint texturaLateral) ;
 
 	void setRes(GLint res);
 
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
 
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
 
 	/*
@@ -108,8 +104,9 @@ public:
 
 	void draw(GLuint textura, GLuint texturaLateral);
 
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -142,14 +139,22 @@ public:
 
 	};
 
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
+	/*
+	metodo que dibuja el tramo actual
+	*/
+	virtual void draw(GLuint textura, GLuint texturaLateral);
 
-	void draw(GLuint textura, GLuint texturaLateral);
-
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -186,14 +191,22 @@ public:
 
 	};
 
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
+	/*
+	metodo que dibuja el tramo actual
+	*/
+	virtual void draw(GLuint textura, GLuint texturaLateral);
 
-	void draw(GLuint textura, GLuint texturaLateral);
-
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -235,14 +248,22 @@ public:
 
 	};
 
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
+	/*
+	metodo que dibuja el tramo actual
+	*/
+	virtual void draw(GLuint textura, GLuint texturaLateral);;
 
-	void draw(GLuint textura, GLuint texturaLateral);
-
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
 	/*
 	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -288,16 +309,26 @@ public:
 		setMatrizfinal(inicial);
 	};
 
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
+	/*
+	metodo que dibuja el tramo actual
+	*/
+	virtual void draw(GLuint textura, GLuint texturaLateral);
 
-	void draw(GLuint textura, GLuint texturaLateral);
-
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	void calcularPathPoints(std::vector<Point3D> &path);
-
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
 	virtual void writeToFile(std::ostream& o);
 
 };
@@ -337,16 +368,26 @@ public:
 
 	};
 
+	/*
+	metodo get para obtener la matriz inicial
+	*/
 	glm::mat4 getMatInicial();
-
+	/*
+	metodo get para obtener la matriz final
+	*/
 	glm::mat4 getMatFinal();
+	/*
+	metodo que dibuja el tramo actual
+	*/
+	virtual void draw(GLuint textura, GLuint texturaLateral);
 
-	void draw(GLuint textura, GLuint texturaLateral);
-
-	virtual void drawing(GLuint textura, GLuint texturaLateral);
-
+	/*
+	metodo que devuelve diferentes puntos a través del tramo
+	*/
 	virtual void calcularPathPoints(std::vector<Point3D> &path);
-
+	/*
+	Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
+	*/
 	virtual void writeToFile(std::ostream& o);
 
 };

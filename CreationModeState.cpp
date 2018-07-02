@@ -17,7 +17,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 CreationModeState CreationModeState::_CreationModeState;
-//Engine para poder realizar los cambios.
+//Engine para poder realizar los cambios de estado.
 StateEngine* engineCreation;
 
 
@@ -56,30 +56,8 @@ GLint const totalTramos = 7;
 GLboolean pausa = false;
 
 
-
-
-
-
 //Identificadores texturas
 GLuint textura_carretera;
-GLuint textura_fondo;
-GLuint textura_nukacola;
-GLuint textura_metal;
-GLuint textura_slurm;
-GLuint textura_sonic;
-GLuint textura_hierba;
-GLuint textura_panel_trasero;
-GLuint textura_cielonoche;
-GLuint textura_cielodia;
-GLuint textura_victoria;
-GLuint textura_velocimetro;
-GLuint textura_aguja;
-GLuint textura_bandera1;
-GLuint textura_bandera2;
-GLuint textura_bandera3;
-GLuint textura_goal;
-GLuint textura_start;
-GLuint textura_coche;
 GLuint textura_carreteraLado;
 GLuint textura_mesa;
 GLuint texturaSuelo;
@@ -128,6 +106,9 @@ int velocidad = 1;
 //tiempo en el que inicia la simulacion
 int tiempoInicio = 0;
 
+/*
+Funcion para obtener la posicion del movil en el tiempo durante la simulacion
+*/
 Point3D getPositionAt(int currentTime) {
 	Point3D before, after, result,yaw;
 	if (!pathSimulacion.empty()) {
@@ -151,13 +132,16 @@ Point3D getPositionAt(int currentTime) {
 	return result;
 }
 
-
+/*
+Funcion para enfocar la ultima pieza colocada
+*/
 void lookAtLastPiece() {
 	Point3D posicion(glm::vec3(myMatrix[3]).x, glm::vec3(myMatrix[3]).y, glm::vec3(myMatrix[3]).z);
 	Point3D mirando(glm::vec3(myMatrix[0]).x, glm::vec3(myMatrix[0]).y, glm::vec3(myMatrix[0]).z);
 	camaraflotante.LookAtPoint(posicion, 5);
 }
 
+//funcion idle estado de creacion
 void onIdleCreation(){
 // Funcion de atencion al evento idle
 
@@ -178,6 +162,8 @@ void onIdleCreation(){
 }
 
 
+
+//funcion para la colocacion de la iluminacion
 void iluminacion() {
 	// Luces
 	//Luz de la luna
@@ -324,6 +310,7 @@ void cargarCircuitoFromFile() {
 
 }
 
+// funcion para guardar el circuito en el fichero correspondiente
 void guardarCircuitoToFile() {
 	//TODO hacer que el fichero se introduzca por pantalla.
 	std::ofstream file(fileMap);
@@ -333,6 +320,7 @@ void guardarCircuitoToFile() {
 	file.close();
 }
 
+//simple switch segun las necesidades del selector
 int hudNumeroSelector(int tramoaux) {
 
 	if (tramoaux >= totalTramos) {
@@ -347,6 +335,7 @@ int hudNumeroSelector(int tramoaux) {
 
 }
 
+// funcion de atencion a las flechas del teclado durante el modo creacion
 void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
@@ -371,7 +360,7 @@ void onSpecialKeyModoCreacion(int specialKey, int x, int y) {
 }
 
 
-
+//funcion de escucha pasiva del raton
 void mouseMovement(int x, int y) {
 	//Comprobar diferencia entre la 'x' de y la 'y' de la posicion actual del raton con la anterior
 	int diffx = x - lastx;
@@ -384,6 +373,7 @@ void mouseMovement(int x, int y) {
 
 }
 
+//funcion de escucha a los botones del raton
 void mouse(int button, int state, int x, int y)
 {
 	//evento de pulsar el click izquierdo
@@ -417,6 +407,7 @@ void mouse(int button, int state, int x, int y)
 /*
 Funciones de escucha durante la puasa
 */
+
 /*
 Sencillo metodo para seguir la logica de la actualizacion del menu.
 */
@@ -430,6 +421,7 @@ GLint actualizarButtonPausa(GLint button) {
 	return button;
 }
 
+// funcion de atencion a las flechas del teclado durante la pausa
 void onSpecialKeyPausa(int specialKey, int x, int y) {
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
@@ -446,7 +438,7 @@ void onSpecialKeyPausa(int specialKey, int x, int y) {
 
 }
 
-
+// funcion para el vaciado de los tramos en memoria
 void vaciarTramosEnMemoria() {
 		vectorTramosEnMemoria.clear();
 }
@@ -454,7 +446,6 @@ void vaciarTramosEnMemoria() {
 /*
 Metodos de uso para simular el coche recorriendo el circuito
 */
-
 void rellenaPath() {
 
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
@@ -465,10 +456,13 @@ void rellenaPath() {
 	pathSimulacion.push_back(Point3D(myMatrix[3].x, myMatrix[3].y, myMatrix[3].z));
 }
 
+// funcion para el vaciado del path
 void vaciaPath() {
 	pathSimulacion.clear();
 }
 
+
+// funcion para el representar el path en consola
 void printPath() {
 
 	for (int i = 0; i < pathSimulacion.size(); i++) {
@@ -490,7 +484,7 @@ void resetVariables() {
 	direccion = true;
 }
 
-
+// funcion para añadir un tramo al vector de tramos
 void añade_tramo(GLint identificador) {
 	// sumamos +1 ya que los arrays empiezan por 0
 	GLfloat angulo = 0;
@@ -504,7 +498,7 @@ void añade_tramo(GLint identificador) {
 		onda = Ondulacion;
 	}
 
-	//TODO añadir la variables que utilizaré en los globals
+
 	switch (identificador + 1) {
 	case 1:
 
@@ -546,6 +540,9 @@ void añade_tramo(GLint identificador) {
 	resetVariables();
 }
 
+/*
+Dibuja el tramo actual seleccionado
+*/
 void dibuja_tramo_actual(GLint identificador) {
 	GLfloat angulo = 0;
 	GLfloat onda = 0;
@@ -594,7 +591,7 @@ void dibuja_tramo_actual(GLint identificador) {
 }
 
 
-
+//funcion de atencion al teclado durante la simulacion
 void onKeySimulacion(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
@@ -630,20 +627,23 @@ void onKeySimulacion(unsigned char tecla, int x, int y)
 	}
 }
 
+//inicializacion de la simulacion
 void InitSimulation() {
 	rellenaPath();
-	printPath();
+	//printPath();
 	glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
 	startSimulacion = true;
 }
 
+//Reinicializacion de la simulacion
 void ResumeSimulation() {
 	glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
 	pausa = false;
 }
 
+//funcion de atencion al teclado durante la pausa
 void onKeyPausa(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
@@ -702,6 +702,7 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 	}
 }
 
+//funcion de atencion al teclado durante la creacion del circuito
 void onKeyCreacion(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
@@ -932,24 +933,6 @@ void CreationModeState::Init(StateEngine* engine) {
 	//Texturas
 	inicializarTextura(textura_carretera, "./textures/carretera.jpg");
 	inicializarTextura(textura_carreteraLado, "./textures/carreteralado.jpg");
-	inicializarTextura(textura_fondo, "./textures/fondo.jpg");
-	inicializarTextura(textura_nukacola, "./textures/nukacola.jpg");
-	inicializarTextura(textura_metal, "./textures/metal.jpg");
-	inicializarTextura(textura_slurm, "./textures/slurm.jpg");
-	inicializarTextura(textura_sonic, "./textures/sonic.jpg");
-	inicializarTextura(textura_hierba, "./textures/hierba.jpg");
-	inicializarTextura(textura_panel_trasero, "./textures/paneltrasero.jpg");
-	inicializarTextura(textura_cielonoche, "./textures/cielonoche.jpg");
-	inicializarTextura(textura_cielodia, "./textures/cielodia.jpg");
-	inicializarTextura(textura_victoria, "./textures/victory.PNG");
-	inicializarTextura(textura_velocimetro, "./textures/velocimetro.PNG");
-	inicializarTextura(textura_aguja, "./textures/aguja.jpg");
-	inicializarTextura(textura_bandera1, "./textures/bandera1.PNG");
-	inicializarTextura(textura_bandera2, "./textures/bandera2.PNG");
-	inicializarTextura(textura_bandera3, "./textures/bandera3.PNG");
-	inicializarTextura(textura_goal, "./textures/goal.PNG");
-	inicializarTextura(textura_start, "./textures/start.PNG");
-	inicializarTextura(textura_coche, "./textures/coche.PNG");
 	inicializarTextura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
 	inicializarTextura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
 	inicializarTextura(textura_mesa, "./textures/madera.png");
@@ -972,6 +955,7 @@ void CreationModeState::Cleanup() {
 	vaciarTramosEnMemoria();
 }
 
+//actualiza la resolucion de lostramos en caso de que se haya cambiado
 void updateRes() {
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
 		vectorTramosEnMemoria[i]->setRes(resolucion);
@@ -1018,64 +1002,64 @@ void CreationModeState::Update(StateEngine* game) {
 
 }
 
+//muestra la leyenda del tramo seleccionado actualmente
 void texto_tramo_actual(GLint tramo) {
 
 	switch (tramo + 1) {
 	case 1:
-		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 2:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 3:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 4:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir curvatura", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "u/i: aumentar/disminuir inclinacion", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 5:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 6:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir longitud", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "j/k: aumentar/disminuir ondulacion", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.05, 0.2, "r: rotar", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, -0.1, 0.2, "o/p: aumentar/disminuir numero ondas", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		break;
 	case 7:
-		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.1, 0.2, "f/h: aumentar/disminuir ancho", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.05, 0.2, "g/t: aumentar/disminuir radio", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+		textoStroke(-1, 0.0, 0.2, "o/p: aumentar/disminuir separacion", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 		
 		break;
-		//TODO añadir nuevas piezas conforme las vaya haciendo
 	}
 }
 
-
+//dibuja la lista de tramos en memoria
 void dibujarTramosEnLista() {
 
 	for (int i = 0; i < vectorTramosEnMemoria.size(); i++) {
-		vectorTramosEnMemoria[i]->drawing(textura_carretera,textura_carreteraLado);
+		vectorTramosEnMemoria[i]->draw(textura_carretera,textura_carreteraLado);
 	}
 }
 
-
+//funcion de dibujado del circuito en memoria
 void dibujarCircuitoEnMemoria()
 {
 
@@ -1093,6 +1077,7 @@ void dibujarCircuitoEnMemoria()
 
 }
 
+//dibuja los tramos en el hud con tamaños fijos
 void dibuja_tramo_HUD(GLint identificador) {
 	// sumamos +1 ya que los arrays empiezan por 0
 	switch (identificador + 1) {
@@ -1140,11 +1125,10 @@ void dibuja_tramo_HUD(GLint identificador) {
 		glRotatef(rotacion_pieza, 0, 1, 0);
 		Looping(0.05, 0.06, 0.08, glm::mat4(1), resolucion, repeticionTex).draw(textura_carretera, textura_carreteraLado);
 		break;
-		//TODO añadir nuevas piezas conforme las vaya haciendo
 	}
 }
 
-
+//dibujado de la base del selector de piezas
 void hudElementBaseSelectorPiezas() {
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -1268,7 +1252,7 @@ void hudElementBaseSelectorPiezas() {
 }
 
 
-//TODO continuar con el selector de piezas, ver como hacer las animaciones mas automatizables y la colocacion de las piezas mas automatizables.
+// dibujado de las piezas visibles en la cinta de seleccion
 void hudElementPiezasVisibles() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	// Habilitamos blending
@@ -1334,7 +1318,7 @@ void hudElementPiezasVisibles() {
 	glPopAttrib();
 }
 
-
+// dibujado de los botones de pausa
 void botonesPausa() {
 
 	if (ButtonPausa == 0) {
@@ -1435,7 +1419,7 @@ void botonesPausa() {
 
 }
 
-
+// dibujado de los textos adjuntos a los botones de pausa
 void textosBotonesPausa() {
 
 	if (ButtonPausa == 0)
@@ -1466,6 +1450,7 @@ void textosBotonesPausa() {
 
 }
 
+// constuccion del menu de pausa
 void menuPausa() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glEnable(GL_BLEND);
@@ -1484,6 +1469,7 @@ void menuPausa() {
 	glPopAttrib();
 }
 
+// muestra la leyenda de la simulacion
 void texto_simulacion() {
 	char *a = "velocidad: ";
 	char buf[8];
@@ -1492,12 +1478,14 @@ void texto_simulacion() {
 	strcpy(result, a); 
 	strcat(result, buf);
 
-	textoStroke(-0.4, 0.05, 0.2, result, 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-	textoStroke(-1, 0.05, 0.2, "W/S: aumentar/disminuir velocidad", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
-	textoStroke(-1, 0.00, 0.2, "M: mostrar/ocultar path", 0.04, 0.04, 0.04, ROJO, GLUT_STROKE_ROMAN);
+
+	textoStroke(-0.4, 0.05, 0.2, result, 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+	textoStroke(-1, 0.05, 0.2, "W/S: aumentar/disminuir velocidad", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+	textoStroke(-1, 0.00, 0.2, "M: mostrar/ocultar path", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 
 }
 
+// dibujado de la interfaz durante la simulacion
 void hudSimulacion() {
 
 	//HUD
@@ -1530,6 +1518,7 @@ void hudSimulacion() {
 	glPopMatrix();
 }
 
+//dibujado de la interfaz durante el modo creacion
 void hudModoCreacion() {
 
 
@@ -1565,6 +1554,7 @@ void hudModoCreacion() {
 
 }
 
+//dibujado de los distintos puntos del path
 void dibujarPuntosPath() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	// Habilitamos blending
@@ -1588,6 +1578,7 @@ void dibujarPuntosPath() {
 	glPopAttrib();
 }
 
+//dibujado del circuito y el entorno
 void dibujoCircuito() {
 	// Borra buffers y selecciona modelview
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1631,7 +1622,7 @@ void dibujoCircuito() {
 
 
 
-//TODO completar esta mision
+
 void CreationModeState::Draw(StateEngine* game) {
 	
 

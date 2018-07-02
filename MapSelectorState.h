@@ -4,7 +4,7 @@
 
 #include "State.h"
 
-
+//clase del menu de seleccion contiene las mismas funciones que el estado base
 class MapSelectorState : public State
 {
 public:
@@ -22,7 +22,7 @@ public:
 		game->ChangeState(state);
 	}
 
-
+	//implementacion del patron singleton
 	static MapSelectorState* Instance() {
 		return &_MapSelectorState;
 	};

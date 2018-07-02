@@ -73,7 +73,7 @@ void texto(GLfloat x, GLfloat y, char *text, const GLfloat *color = ROJO, void *
 
 void textoStroke(GLfloat x, GLfloat y,GLfloat z, char * text,GLfloat scaleX,GLfloat scaleY,GLfloat scaleZ, const GLfloat *color = ROJO,void *font = GLUT_STROKE_ROMAN);
 /*
-	Funcion pensada para dibujar textoStroke en el viewport orthogonal standar es decir -1,1-1,1
+	Funcion pensada para dibujar textoStroke en el viewport orthogonal standar es decir -1,1-1,1,-1,1
 */
 
    

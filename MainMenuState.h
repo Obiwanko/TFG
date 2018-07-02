@@ -4,6 +4,7 @@
 
 #include "State.h"
 
+//clase del menu de opciones contiene las mismas funciones que el estado base
 
 class MainMenuState : public State
 {
@@ -22,7 +23,7 @@ public:
 		game->ChangeState(state);
 	}
 
-
+	//implementacion del patron singleton
 	static MainMenuState* Instance() {
 		return &_MainMenuState;
 	};

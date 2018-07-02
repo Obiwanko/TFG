@@ -144,9 +144,6 @@ void Tramo::setRes(GLint res) {
 }
 
 
-void Tramo::drawing(GLuint textura, GLuint texturaLateral) {
-	this->draw(textura, texturaLateral);
-}
 
 
 /*
@@ -376,9 +373,6 @@ void TramoCurvo::draw(GLuint textura, GLuint texturaLateral)
 
 };
 
-void  TramoCurvo::drawing(GLuint textura, GLuint texturaLateral) {
-	draw(textura, texturaLateral);
-}
 
 /*
 Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -529,9 +523,7 @@ void Rampa::draw(GLuint textura, GLuint texturaLateral)
 	//posicionUltimoTramo.y = posicionUltimoTramo.y + _longitud * _pendiente;
 };
 
-void Rampa::drawing(GLuint textura, GLuint texturaLateral) {
-	draw(textura, texturaLateral);
-}
+
 
 /*
 Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -769,9 +761,6 @@ void RampaCurva::draw(GLuint textura, GLuint texturaLateral)
 
 };
 
-void RampaCurva::drawing(GLuint textura, GLuint texturaLateral) {
-	draw(textura, texturaLateral);
-}
 
 /*
 Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -973,9 +962,6 @@ void TramoSinuosoHorizontal::draw(GLuint textura, GLuint texturaLateral)
 	//posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
 };
 
- void TramoSinuosoHorizontal::drawing(GLuint textura, GLuint texturaLateral) {
-	draw(textura, texturaLateral);
-}
 
 /*
 Metodo que escribirá en el output stream dado, los parametros necesarios para pintar la pieza, la resolucion y las repeticiones vendrán dadas por las opciones
@@ -1171,9 +1157,7 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 	 //posicionUltimoTramo.x = posicionUltimoTramo.x + _longitud;
  };
 
- void TramoSinuosoVertical::drawing(GLuint textura, GLuint texturaLateral) {
-	 draw(textura, texturaLateral);
- }
+
 
  void TramoSinuosoVertical::writeToFile(std::ostream& o) {
 
@@ -1370,9 +1354,7 @@ Metodo que escribirá en el output stream dado, los parametros necesarios para pi
 	 //posicionUltimoTramo.z = posicionUltimoTramo.z + _separacion;
  };
 
- void Looping::drawing(GLuint textura, GLuint texturaLateral) {
-	 draw(textura, texturaLateral);
- }
+ 
 
  void Looping::writeToFile(std::ostream& o) {
 

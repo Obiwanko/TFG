@@ -7,10 +7,8 @@ Clases para el control de la camara que usaremos durante la construccion del cir
 Clases:
 Camera: Sistema de camara libre tipo FP(primera persona)
 
-Dependencias:
-+glm.hpp
-+Utilidades.h
-+vector
+Fuente utilizada para su desarrollo:
+https://learnopengl.com/Getting-started/Camera
 ***************************************************/
 
 #ifndef CAMERA_H
