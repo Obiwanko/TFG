@@ -81,6 +81,16 @@ public:
 		updateCameraVectors();
 	}
 
+	void LookAtObject(glm::vec3 pos, glm::vec3 front, float separacion) {
+		float i = 1;
+		if (abs(front.y) > 0.5) i = -1;
+
+		Position = glm::vec3(pos.x+(-front.x*separacion), pos.y+((0.5 +(separacion))*i),pos.z+(-front.z*separacion));
+		Pitch = 0;
+		updateCameraVectors();
+		Front = front;
+	}
+
 	// Devuelve la matriz view la cual usaremos en el modelo MVP
 	glm::mat4 GetViewMatrix()
 	{

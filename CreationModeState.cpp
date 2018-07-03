@@ -101,16 +101,19 @@ std::vector<Point3D> pathSimulacion;
 BOOLEAN startSimulacion = false;
 BOOLEAN mostrarPath = false;
 Point3D posicionActualCoche;
+glm::vec3 direccionActualCoche;
 int delay = 250;
 int velocidad = 1;
 //tiempo en el que inicia la simulacion
 int tiempoInicio = 0;
+//tipo de camara  0 = camara voladora 1 = tercera persona 2 = primera persona 
+int camaraSim = 0;
 
 /*
 Funcion para obtener la posicion del movil en el tiempo durante la simulacion
 */
 Point3D getPositionAt(int currentTime) {
-	Point3D before, after, result,yaw;
+	Point3D before, after, result;
 	if (!pathSimulacion.empty()) {
 		int currentIndex = (currentTime / delay) % pathSimulacion.size();
 		before = pathSimulacion[currentIndex];
@@ -132,6 +135,34 @@ Point3D getPositionAt(int currentTime) {
 	return result;
 }
 
+//obtiene el vector direccion del movil en un punto dado del tiempo
+glm::vec3 getDirection(int currentTime) {
+	glm::vec3 result=glm::vec3(0);
+	Point3D before, after;
+	if (!pathSimulacion.empty()) {
+		int currentIndex = (currentTime / delay) % pathSimulacion.size();
+		before = pathSimulacion[currentIndex];
+		after = pathSimulacion[(currentIndex + 1) % pathSimulacion.size()];
+
+		double progress = fmod(((
+			(double)currentTime) / (double)delay),
+			(double)pathSimulacion.size())
+
+			- currentIndex;
+
+		result.x =   (after.x - before.x);
+		result.y =   (after.y - before.y);
+		result.z =   (after.z - before.z);
+
+		//normalizamos el resultado
+		result = glm::normalize(result);
+	}
+	
+	std::cout << glm::to_string(result) << "\n";
+
+	return result;
+}
+
 /*
 Funcion para enfocar la ultima pieza colocada
 */
@@ -147,6 +178,7 @@ void onIdleCreation(){
 
 
 	posicionActualCoche = getPositionAt(glutGet(GLUT_ELAPSED_TIME)- tiempoInicio);
+	direccionActualCoche = getDirection(glutGet(GLUT_ELAPSED_TIME) - tiempoInicio);
 	static int antesc = 0;
 	int ahorac, tiempo_transcurridoc;
 
@@ -618,6 +650,10 @@ void onKeySimulacion(unsigned char tecla, int x, int y)
 		case 'm':
 			mostrarPath = !mostrarPath;
 			break;
+		case 'c':
+		case 'C':
+			camaraSim = (camaraSim + 1) % 3;
+			break;
 		case 27: // Pulso escape
 			ButtonPausa = 0;
 			CreationModeState::Instance()->Pause();
@@ -977,7 +1013,7 @@ void CreationModeState::Resume() {
 	}
 	
 	updateRes();
-	cout << glm::to_string(myMatrix);
+
 }
 
 void CreationModeState::Pause() {
@@ -1473,7 +1509,7 @@ void menuPausa() {
 void texto_simulacion() {
 	char *a = "velocidad: ";
 	char buf[8];
-	sprintf(buf, "%d", (1/delay)*1000);
+	sprintf(buf, "%d", 100-(delay/10));
 	char result[100];   
 	strcpy(result, a); 
 	strcat(result, buf);
@@ -1482,6 +1518,7 @@ void texto_simulacion() {
 	textoStroke(-0.4, 0.05, 0.2, result, 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 	textoStroke(-1, 0.05, 0.2, "W/S: aumentar/disminuir velocidad", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 	textoStroke(-1, 0.00, 0.2, "M: mostrar/ocultar path", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
+	textoStroke(-1, -0.05, 0.2, "C: cambiar camara", 0.04, 0.04, 0.04, AZUL, GLUT_STROKE_ROMAN);
 
 }
 
@@ -1578,6 +1615,26 @@ void dibujarPuntosPath() {
 	glPopAttrib();
 }
 
+//funcion de apoyo para establecer la camara durante la simulacion
+void setCamaraSimulacion() {
+	switch (camaraSim)
+	{
+	case 0:
+		camaraflotante.LookAtPoint(posicionActualCoche, 5);
+		break;
+	case 1:
+		//camara tercera persona
+		camaraflotante.LookAtObject(glm::vec3(posicionActualCoche.x, posicionActualCoche.y, posicionActualCoche.z), direccionActualCoche, 3);
+		break;
+	case 2:
+		//camara primera persona
+		camaraflotante.LookAtObject(glm::vec3(posicionActualCoche.x, posicionActualCoche.y, posicionActualCoche.z), direccionActualCoche, 0);
+		break;
+	default:
+		break;
+	}
+}
+
 //dibujado del circuito y el entorno
 void dibujoCircuito() {
 	// Borra buffers y selecciona modelview
@@ -1586,7 +1643,9 @@ void dibujoCircuito() {
 	glLoadIdentity();
 
 	if (startSimulacion) {
-		camaraflotante.LookAtPoint(posicionActualCoche, 5);
+		
+		setCamaraSimulacion();
+
 	}
 
 	camaraflotante.SetGluLookUp();
@@ -1610,9 +1669,11 @@ void dibujoCircuito() {
 		//la tira donde se colocaran las piezas
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glColor4f(1, 0, 0, 1);
+		if (camaraSim != 2) {
+			glTranslatef(posicionActualCoche.x, posicionActualCoche.y+0.4, posicionActualCoche.z);
+			glutSolidSphere(0.4, 10, 10);
+		}
 
-		glTranslatef(posicionActualCoche.x, posicionActualCoche.y, posicionActualCoche.z);
-		glutSolidSphere(0.4, 10, 10);
 
 		glPopAttrib();
 	}

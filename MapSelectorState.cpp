@@ -24,9 +24,10 @@ Variables para el dibujo de la lista de ficheros
 */
 GLint SelectedMap = 0;
 GLint Pagina = 0;
+GLint TotalPaginas = 0;
 
 /*
-Sencillo metodod para seguir la logica de la actualizacion del menu.
+Sencillo metodo para seguir la logica de la actualizacion del menu.
 */
 GLint actualizarSelectedMap(GLint button) {
 	if (button<0) {
@@ -36,15 +37,22 @@ GLint actualizarSelectedMap(GLint button) {
 			button = 7;
 		}
 		else {
-			button = (nombresFicheros.size() % 8) - 1;
-			Pagina = (int)nombresFicheros.size() / 8;
+			if (TotalPaginas > 1) {
+				button = (nombresFicheros.size() % 8) - 1;
+				Pagina = ((int)nombresFicheros.size() - 1) / 8;
+			}
+			else {
+				button = 7;
+			}
 		}
+
 	}
-	else if (button==8) {
+	else if (button>=8 ) {
 		button = 0;
+		if(TotalPaginas > 1)
 		Pagina += 1;
 	}
-	else if (button+(Pagina*8) == nombresFicheros.size()) {
+	else if ((button+(Pagina*8)) >= (nombresFicheros.size())) {
 		button = 0;
 		Pagina = 0;
 	}
@@ -66,7 +74,7 @@ void onSpecialKeySelector(int specialKey, int x, int y) {
 		SelectedMap = actualizarSelectedMap(SelectedMap + 1);
 		break;
 	}
-	cout << SelectedMap << "\n";
+
 }
 
 
@@ -93,7 +101,7 @@ void inicializarVectorFicheros() {
 			nombresFicheros.push_back(file);
 		}
 	}
-	
+	TotalPaginas = ((nombresFicheros.size()-1) / 8)+1;
 }
 
 void MapSelectorState::Init(StateEngine* engine) {
@@ -175,9 +183,9 @@ void Soporte() {
 
 }
 
-
-
-
+/*
+Dibuja las flechas adjuntas al soporte
+*/
 void flechas() {
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -238,7 +246,7 @@ Metodo simple para mostrar el numero de pagina al usuario
 */
 void paginas() {
 
-	int maxpag = ((int)nombresFicheros.size() / 8)+1;
+	int maxpag = (((int)nombresFicheros.size()-1) / 8)+1;
 	char *a = "/";
 	char buf[8];
 	sprintf(buf, "%d", Pagina+1);
