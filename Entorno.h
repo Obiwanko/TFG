@@ -9,8 +9,6 @@ class Entorno
 protected:
 	int _res;								// resolucion
 	int _texX;								// nº rep textura
-	const int _id = 1;
-
 
 	void drawDesk(GLuint textura,GLfloat ancho,GLfloat largo, GLfloat profundo);
 

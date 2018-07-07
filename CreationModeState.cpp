@@ -77,6 +77,8 @@ BOOLEAN rightclick = false;
 GLint ButtonPausa = 0;
 GLuint textura_BotonSeleccionadoPausa;
 GLuint textura_BotonSinSeleccionarPausa;
+BOOLEAN saliendo = false;
+BOOLEAN guardar = true;
 
 //variables de uso durante la construccion de las piezas
 GLfloat LongitudoRadio=5;
@@ -158,7 +160,6 @@ glm::vec3 getDirection(int currentTime) {
 		result = glm::normalize(result);
 	}
 	
-	std::cout << glm::to_string(result) << "\n";
 
 	return result;
 }
@@ -457,8 +458,14 @@ GLint actualizarButtonPausa(GLint button) {
 void onSpecialKeyPausa(int specialKey, int x, int y) {
 	switch (specialKey) {
 	case GLUT_KEY_LEFT:
+		if (saliendo) 
+			guardar = !guardar;
+		
 		break;
 	case GLUT_KEY_RIGHT:
+		if (saliendo)
+			guardar = !guardar;
+			
 		break;
 	case GLUT_KEY_UP:
 		ButtonPausa = actualizarButtonPausa(ButtonPausa - 1);
@@ -677,12 +684,42 @@ void ResumeSimulation() {
 	glutSpecialFunc(NULL);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeySimulacion);// Alta de la funcion de atencion al teclado 
 	pausa = false;
+	saliendo = false;
 }
+
 
 //funcion de atencion al teclado durante la pausa
 void onKeyPausa(unsigned char tecla, int x, int y)
 // Funcion de atencion al teclado
 {
+	if (saliendo) {
+		switch (tecla) {
+		case 13://se pulsa enter
+			if (guardar) { // se guarda
+				guardarCircuitoToFile();
+				engineCreation->Cleanup();
+				engineCreation->PushState(MainMenuState::Instance());
+			}
+			else { // no se guarda
+				engineCreation->Cleanup();
+				engineCreation->PushState(MainMenuState::Instance());
+			}
+			break;
+		case 27: // Pulso escape
+			if (!startSimulacion) {
+				CreationModeState::Instance()->Resume();
+			}
+			else {
+				ResumeSimulation();
+			}
+
+			break;
+		}
+
+	}
+	else {
+
+	
 
 	switch (tecla) {
 	case 13://se pulsa enter
@@ -716,9 +753,8 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 			engineCreation->PushState(OptionsMenuState::Instance());
 			break;
 		case 4: //guardamos y salimos
-			guardarCircuitoToFile();
-			engineCreation->Cleanup();
-			engineCreation->PushState(MainMenuState::Instance());
+			saliendo = true;
+
 			break;
 		default:
 			break;
@@ -735,6 +771,8 @@ void onKeyPausa(unsigned char tecla, int x, int y)
 		}
 	
 		break;
+	}
+
 	}
 }
 
@@ -971,7 +1009,7 @@ void CreationModeState::Init(StateEngine* engine) {
 	inicializarTextura(textura_carreteraLado, "./textures/carreteralado.jpg");
 	inicializarTextura(textura_BotonSeleccionadoPausa, "./textures/ButtonSelected.jpg");
 	inicializarTextura(textura_BotonSinSeleccionarPausa, "./textures/ButtonNotSelected.jpg");
-	inicializarTextura(textura_mesa, "./textures/madera.png");
+	inicializarTextura(textura_mesa, "./textures/madera.jpg");
 	inicializarTextura(texturaSuelo, "./textures/room/negy.dds");
 	inicializarTextura(texturaTecho, "./textures/room/posy.dds");
 	inicializarTextura(texturaParedposX, "./textures/room/posx.dds");
@@ -1000,6 +1038,7 @@ void updateRes() {
 
 void CreationModeState::Resume() {
 	pausa = false;
+	saliendo = false;
 	startSimulacion = false;
 	glutSpecialFunc(onSpecialKeyModoCreacion);// Alta de la funcion de atencion al teclado especial
 	glutKeyboardFunc(onKeyCreacion);// Alta de la funcion de atencion al teclado 
@@ -1486,6 +1525,68 @@ void textosBotonesPausa() {
 
 }
 
+void botonesSalir() {
+	if (guardar){
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
+	Point3D v0(-0.6, 0.2, 0.0);
+	Point3D v1(-0.1, 0.2, 0.0);
+	Point3D v3(-0.6, 0.0, 0.0);
+	Point3D v2(-0.1, 0.0, 0.0);
+
+
+	quadtex(v0, v1, v2, v3,
+		0, 1, 0, 1, 1, 1);
+
+	if (!guardar) {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSeleccionadoPausa);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, textura_BotonSinSeleccionarPausa);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+
+	v0[0] = 0.1;
+	v1[0] = 0.6;
+	v3[0] = 0.1;
+	v2[0] = 0.6;
+
+	quadtex(v0, v1, v2, v3,
+		0, 1, 0, 1, 1, 1);
+
+}
+
+void textoGuardar() {
+
+	if (guardar)
+		textoStroke(-0.38, 0.07, 0.2, "Si", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(-0.38, 0.07, 0.2, "Si", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+
+	if (!guardar)
+		textoStroke(0.32, 0.07, 0.2, "No", 0.08, 0.08, 0.08, AMARILLO, GLUT_STROKE_ROMAN);
+	else
+		textoStroke(0.32, 0.07, 0.2, "No", 0.08, 0.08, 0.08, BLANCO, GLUT_STROKE_ROMAN);
+
+		textoStroke(-0.6, 0.3, 0.2, "Quieres guardar el progreso?", 0.1, 0.1, 0.1, AZUL, GLUT_STROKE_ROMAN);
+
+
+}
+
 // constuccion del menu de pausa
 void menuPausa() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -1500,8 +1601,16 @@ void menuPausa() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D); //habilitamos textura
 	
-	botonesPausa();
-	textosBotonesPausa();
+	if (saliendo) {
+		botonesSalir();
+		textoGuardar();
+	}
+	else {
+		botonesPausa();
+		textosBotonesPausa();
+	}
+
+
 	glPopAttrib();
 }
 
