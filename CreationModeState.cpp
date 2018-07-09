@@ -1000,7 +1000,7 @@ void CreationModeState::Init(StateEngine* engine) {
 
 	glm::vec3 posicion_inicial = { 0,5,10 };
 	camaraflotante = Camera(posicion_inicial);
-
+	saliendo = false;
 	pausa = false;
 	iluminacion();
 
